@@ -248,6 +248,7 @@ main .card.team {
     padding: 0;
     background-color: var(--white);
     max-width: 50%;
+    max-height: 70%;
 
     border: 1px solid var(--darkblue);
     border-radius: 10px;
@@ -255,7 +256,7 @@ main .card.team {
     box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;
 
     white-space: pre-line;
-    
+
     &::backdrop {
         opacity: 0.4;
         background-color: var(--contentcolor);

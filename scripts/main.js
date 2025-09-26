@@ -7,7 +7,7 @@ searchField.addEventListener('input', (e) => {
     console.log(e.target.value);
 });
 
-// TODO: Implement a search feature
+// TODO: Implement live search feature
 
 const SOPList = [];
 
@@ -90,6 +90,10 @@ addSOPToList("Ci5 - Effectuer un BAS", "Etapes pour effectuer un BAS dans Ci5", 
 
 addSOPToList("Soumettre un titre de transit", "Etapes pour soumettre un titre de transit dans CVC", "1. Aller dans l'onglet Transit sur CVC. \n2. *a rédiger*", "Alex", "CVC;transit;T1;T2;T2L", "21/09/2025");
 
+addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
+addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
+addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
+addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
 addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
 addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
 addSOPToList("SOP de test", "Etapes pour soumettre un SOP de test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "Alex", "CVC;SOP", "21/09/2025");
