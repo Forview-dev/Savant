@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Savant! for TTOM</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="logo">S</div>
+            <div>
+                <h1>Savant! for TTOM</h1>
+            </div>
+        </div>
+        <nav class="site-nav">
+            <a href="login.html" id="nav-login">Login</a>
+            <a href="write.html" id="nav-write" hidden>Write</a>
+        </nav>
+    </header>
+
+    <main class="container" id="main">
+        <section class="controls">
+            <input id="search" type="search" placeholder="Search SOPs..." />
+            <button id="refresh">Refresh</button>
+        </section>
+
+        <section id="list" class="sop-list" aria-live="polite">
+            <!-- SOP items inserted by index.js -->
+        </section>
+
+        <aside class="detail-panel" id="detail" hidden>
+            <button id="close-detail" class="small">Close</button>
+            <h2 id="detail-title"></h2>
+            <div id="detail-meta" class="meta"></div>
+            <article id="detail-content" class="content"></article>
+            <div id="detail-actions" class="actions">
+                <a id="edit-btn" class="btn" href="write.html" hidden>Edit</a>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="site-footer">
+        <small>© Savant! for TTOM - developped by ad</small>
+    </footer>
+
+    <script src="js/main.js" defer></script>
+    <script src="js/index.js" defer></script>
+</body>
+
+</html>
