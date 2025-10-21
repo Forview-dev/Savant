@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Savant! — Sign in</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="api-base-url" content="http://localhost:4000" />
+    <link rel="stylesheet" href="/styles/base.css" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <h1><a href="/" style="text-decoration:none; color:inherit;">Savant!</a></h1>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <h2>Sign in</h2>
+            <p class="muted">Enter your work email and we’ll send you a magic link.</p>
+
+            <form id="login-form" class="row" autocomplete="email">
+                <label for="email" style="min-width:120px;">Work email</label>
+                <input id="email" name="email" type="email" placeholder="you@company.com" required />
+                <button id="login-btn" type="submit">Send magic link</button>
+            </form>
+            <p id="login-msg" class="muted"></p>
+
+            <p class="muted" style="margin-top:12px">
+                Already clicked the link? This page will detect it automatically.
+            </p>
+        </div>
+    </main>
+
+    <script type="module" src="/js/login.js"></script>
+</body>
+
+</html>

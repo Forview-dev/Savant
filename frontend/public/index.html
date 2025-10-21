@@ -1,55 +1,62 @@
 <!doctype html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Savant! for TTOM</title>
-    <link rel="stylesheet" href="css/main.css" />
-    <link rel="stylesheet" href="css/index.css" />
-</head>
-
-<body>
+    <title>Savant! — SOP Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="api-base-url" content="http://localhost:4000" />
+    <link rel="stylesheet" href="/styles/base.css" />
+  </head>
+  <body>
     <header class="site-header">
-        <div class="brand">
-            <div class="logo">S</div>
-            <div>
-                <h1>Savant! for TTOM</h1>
-            </div>
-        </div>
-        <nav class="site-nav">
-            <a href="login.html" id="nav-login">Login</a>
-            <a href="write.html" id="nav-write" hidden>Write</a>
+      <div class="container header-inner">
+        <h1><a href="/" style="text-decoration:none; color:inherit;">Savant!</a></h1>
+        <nav class="nav">
+          <a href="#" data-view="sops" class="nav-link active">Dashboard</a>
+          <a href="#" data-view="create" class="nav-link">Create</a>
+          <a href="/health.html" class="nav-link">Health</a>
         </nav>
+        <div id="user-pill" class="user-pill">Not signed in</div>
+      </div>
     </header>
 
-    <main class="container" id="main">
-        <section class="controls">
-            <input id="search" type="search" placeholder="Search SOPs..." />
-            <button id="refresh">Refresh</button>
-        </section>
+    <main class="container">
+      <section id="view-sops">
+        <div class="card">
+          <h2>SOP Dashboard</h2>
+          <div class="row">
+            <input id="filter-q" type="text" placeholder="Search..." />
+            <input id="filter-category" type="text" placeholder="Category..." />
+            <input id="filter-tags" type="text" placeholder="Tags (comma-separated)" />
+            <button id="apply-filters">Search</button>
+            <button id="clear-filters" class="ghost">Clear</button>
+          </div>
+        </div>
 
-        <section id="list" class="sop-list" aria-live="polite">
-            <!-- SOP items inserted by index.js -->
-        </section>
+        <div class="card">
+          <h3>All SOPs</h3>
+          <div id="sop-tiles" class="tile-grid"></div>
+        </div>
+      </section>
 
-        <aside class="detail-panel" id="detail" hidden>
-            <button id="close-detail" class="small">Close</button>
-            <h2 id="detail-title"></h2>
-            <div id="detail-meta" class="meta"></div>
-            <article id="detail-content" class="content"></article>
-            <div id="detail-actions" class="actions">
-                <a id="edit-btn" class="btn" href="write.html" hidden>Edit</a>
-            </div>
-        </aside>
+      <section id="view-create" style="display:none">
+        <div class="card">
+          <h2>Create a new SOP</h2>
+          <div class="row">
+            <input id="sop-title" type="text" placeholder="Title" />
+            <input id="sop-category" type="text" placeholder="Category" />
+            <input id="sop-tags" type="text" placeholder="Tags (comma-separated)" />
+          </div>
+          <div id="editor" class="quill"></div>
+          <div class="row" style="margin-top:8px">
+            <input id="sop-message" type="text" placeholder="Change note (optional)" />
+            <button id="save-sop">Save SOP</button>
+            <button id="clear-editor" class="ghost">Clear</button>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <footer class="site-footer">
-        <small>© Savant! for TTOM - developped by ad</small>
-    </footer>
-
-    <script src="js/main.js" defer></script>
-    <script src="js/index.js" defer></script>
-</body>
-
+    <script type="module" src="/js/app.js"></script>
+  </body>
 </html>

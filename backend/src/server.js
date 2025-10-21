@@ -1,46 +1,68 @@
-// src/server.js
-const express = require('express');
-const cookieSession = require('cookie-session');
-const cors = require('cors');
-const helmet = require('helmet');
-const { PORT, API_ORIGIN, SESSION_SECRET } = require('./config');
-const authRoutes = require('./routes/auth');
-const proceduresRoutes = require('./routes/procedures');
-const prisma = require('./db');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import pino from 'pino';
+import pinoHttp from 'pino-http';
+import { env } from './config/env.js';
+import { authRouter } from './modules/auth/routes.js';
+import { requireAuthOptional, signSession } from './middleware/auth.js';
+import { sopsRouter } from './modules/sops/routes.js';
 
+const logger = pino({ level: env.LOG_LEVEL });
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
+app.use(
+  cors({
+    origin: env.FRONTEND_ORIGIN,
+    credentials: true,
+  })
+);
+app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
+app.use(pinoHttp({ logger }));
 
-// CORS - allow frontend dev origin and credentials
-app.use(cors({
-  origin: API_ORIGIN,
-  credentials: true
-}));
+app.set('signSession', signSession);
 
-app.use(cookieSession({
-  name: 'savant.session',
-  keys: [SESSION_SECRET],
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}));
-
-// mount API routes under /api
-app.use('/api/auth', authRoutes);
-app.use('/api/procedures', proceduresRoutes);
-
-// simple health-check
-app.get('/api/health', (req, res) => res.json({ ok: true, now: new Date().toISOString() }));
-
-// global error handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'internal_error' });
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'sop-backend',
+    status: 'ok',
+    env: env.NODE_ENV,
+    message: 'SOP backend API is running.',
+  });
 });
 
-// start
-app.listen(PORT, () => {
-  console.log(`Savant for TTOM backend listening on port ${PORT}`);
+app.get('/healthz', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use('/auth', authRouter);
+
+app.get('/me', requireAuthOptional, (req, res) => {
+  const user = req.user ? { email: req.user.email, role: req.user.role } : null;
+  res.status(200).json({ user });
+});
+
+app.use('/sops', sopsRouter);
+
+app.use((req, res) => res.status(404).json({ error: 'Not Found' }));
+
+app.use((err, req, res, _next) => {
+  req.log?.error({ err }, 'Unhandled error');
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+app.listen(env.PORT, () => {
+  logger.info({ port: env.PORT, frontend: env.FRONTEND_ORIGIN }, 'API listening');
 });
