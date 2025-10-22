@@ -78,7 +78,7 @@ body>* {
 .header-inner {
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(22px);
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-soft);
     padding: 26px 36px;
     display: flex;
@@ -414,9 +414,9 @@ button.danger:hover {
 .tile::before {
     content: "";
     position: absolute;
-    inset: -60px auto auto -40px;
-    width: 160px;
-    height: 160px;
+    inset: 15px auto auto 15px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: rgba(81, 97, 255, 0.12);
     filter: blur(0.5px);
