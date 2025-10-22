@@ -54,13 +54,27 @@ function preferIPv4Lookup(hostname, options, callback) {
     return dnsLookup(hostname, options, callback);
   }
 
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
+  let cb = callback;
+  let opts = options;
+
+  if (typeof opts === 'function') {
+    cb = opts;
+    opts = {};
   }
 
-  const opts = { ...options, family: 4 };
-  return dnsLookup(hostname, opts, callback);
+  const lookupOptions = { ...opts, family: 4 };
+
+  return dnsLookup(hostname, lookupOptions, (err, address, family) => {
+    if (!err) {
+      return cb?.(null, address, family);
+    }
+
+    if (err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN') {
+      return dnsLookup(hostname, opts, cb);
+    }
+
+    return cb?.(err, address, family);
+  });
 }
 
 export const pool = new Pool({
