@@ -18,12 +18,25 @@ async function fetchMe() {
 async function requireAuth() {
   const { user } = await fetchMe();
   if (!user) {
-    const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+    const target = encodeURIComponent(
+      window.location.pathname + window.location.search + window.location.hash
+    );
     window.location.replace(`/login.html?redirect=${target}`);
     return false;
   }
+
+  // Update the header pill: email + colored role
   const pill = document.getElementById('user-pill');
-  if (pill) pill.textContent = user.email;
+  if (pill) {
+    const roleClass = `role-${(user.role || 'viewer').toLowerCase()}`;
+    const roleName = user.role
+      ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+      : 'Viewer';
+    pill.innerHTML = `
+      ${user.email}
+      <span class="role ${roleClass}">(${roleName})</span>
+    `;
+  }
   return true;
 }
 

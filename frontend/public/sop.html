@@ -18,11 +18,34 @@
     </header>
 
     <main class="container">
-        <div id="sop-actions" class="row" style="display:none"></div>
-        <div id="sop-detail" class="card">
-            <p>Loading SOP...</p>
+        <div id="sop-actions" class="row" style="gap:12px; margin-top:20px;"></div>
+
+        <div id="sop-detail" style="margin-top:24px;">
+            <!-- SOP details dynamically rendered -->
+        </div>
+
+        <!-- Optional feedback/comment box for clarity -->
+        <div class="card" style="margin-top:28px;">
+            <h3>Feedback (optional)</h3>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                <label for="comment" class="muted">Your comment</label>
+                <input id="comment" type="text" placeholder="Add a comment or note..." />
+                <button id="submit-comment" class="ghost">Submit</button>
+            </div>
         </div>
     </main>
+
+    <!-- Delete confirmation modal -->
+    <div id="modal-backdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this SOP?</p>
+            <div class="row" style="justify-content:flex-end;">
+                <button id="modal-cancel" class="ghost">Cancel</button>
+                <button id="modal-confirm" class="danger">Delete</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="/js/sop.js"></script>
 </body>

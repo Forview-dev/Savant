@@ -4,6 +4,7 @@ function getApiBaseUrl() {
 }
 
 let CURRENT_USER = null;
+let PENDING_DELETE_ID = null;
 
 async function fetchMe() {
   const apiBase = getApiBaseUrl();
@@ -24,12 +25,23 @@ async function requireAuth() {
     return false;
   }
   CURRENT_USER = user;
+
+  // Render email + colored role
   const pill = document.getElementById('user-pill');
-  if (pill) pill.textContent = `${user.email}`;
+  if (pill) {
+    const roleClass = `role-${(user.role || 'viewer').toLowerCase()}`;
+    const roleName = user.role
+      ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+      : 'Viewer';
+    pill.innerHTML = `
+      ${user.email}
+      <span class="role ${roleClass}">(${roleName})</span>
+    `;
+  }
+
   return true;
 }
 
-// HASH-ONLY: sop.html#<id> or sop.html#id=<id>
 function getSopIdFromHash() {
   const raw = (window.location.hash || '').replace(/^#/, '');
   if (!raw) return null;
@@ -44,14 +56,7 @@ function escapeHtml(s) {
 async function fetchSop(id) {
   const apiBase = getApiBaseUrl();
   const res = await fetch(`${apiBase}/sops/${id}`, { credentials: 'include' });
-  if (!res.ok) {
-    if (res.status === 401) {
-      const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-      window.location.replace(`/login.html?redirect=${target}`);
-      return null;
-    }
-    throw new Error(`SOP ${id} not found`);
-  }
+  if (!res.ok) throw new Error(`SOP ${id} not found`);
   return res.json();
 }
 
@@ -72,69 +77,84 @@ function canDelete() {
   return role === 'admin';
 }
 
+/* ---------- Modal helpers ---------- */
+function openModal() {
+  document.getElementById('modal-backdrop')?.classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-backdrop')?.classList.remove('show');
+  PENDING_DELETE_ID = null;
+}
+function bindModalEvents() {
+  const backdrop = document.getElementById('modal-backdrop');
+  const btnCancel = document.getElementById('modal-cancel');
+  const btnConfirm = document.getElementById('modal-confirm');
+
+  backdrop?.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+  btnCancel?.addEventListener('click', closeModal);
+  btnConfirm?.addEventListener('click', async () => {
+    if (!PENDING_DELETE_ID) return;
+    try {
+      const apiBase = getApiBaseUrl();
+      const res = await fetch(`${apiBase}/sops/${encodeURIComponent(PENDING_DELETE_ID)}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(`Delete failed: ${data.error || res.status}`);
+        return;
+      }
+      closeModal();
+      window.location.href = '/';
+    } catch (e) {
+      alert(`Delete failed: ${e.message || e}`);
+    }
+  });
+}
+
 function renderActions(id) {
   const bar = document.getElementById('sop-actions');
   if (!bar) return;
-  const parts = [];
+
+  let buttons = `
+    <a href="/"><button class="ghost" id="back-dashboard">← Back to Dashboard</button></a>
+  `;
 
   if (canEdit()) {
-    parts.push(`<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Edit SOP</button></a>`);
+    buttons += `<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Edit SOP</button></a>`;
   }
   if (canDelete()) {
-    parts.push(`<button id="delete-sop-btn" class="ghost" title="Delete SOP">Delete</button>`);
+    buttons += `<button id="delete-sop-btn" class="danger" title="Delete SOP">Delete</button>`;
   }
 
-  if (parts.length) {
-    bar.innerHTML = parts.join('');
-    bar.style.display = '';
-    const delBtn = document.getElementById('delete-sop-btn');
-    if (delBtn) {
-      delBtn.addEventListener('click', async () => {
-        const ok = confirm('Are you sure you want to delete this SOP?');
-        if (!ok) return;
-        try {
-          const apiBase = getApiBaseUrl();
-          const res = await fetch(`${apiBase}/sops/${encodeURIComponent(id)}`, {
-            method: 'DELETE',
-            credentials: 'include'
-          });
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            alert(`Delete failed: ${data.error || res.status}`);
-            return;
-          }
-          window.location.href = '/';
-        } catch (e) {
-          alert(`Delete failed: ${e.message || e}`);
-        }
-      });
-    }
-  } else {
-    bar.style.display = 'none';
-  }
+  bar.innerHTML = buttons;
+
+  // Wire delete modal
+  document.getElementById('delete-sop-btn')?.addEventListener('click', () => {
+    PENDING_DELETE_ID = id;
+    openModal();
+  });
 }
 
 async function renderSop() {
   const container = document.getElementById('sop-detail');
   const id = getSopIdFromHash();
-
   if (!id) {
     container.innerHTML = '<p class="muted">No SOP ID provided. Use sop.html#&lt;id&gt;.</p>';
     return;
   }
 
-  // actions first (so buttons are visible while content loads)
   renderActions(id);
-
   const sop = await fetchSop(id);
-  if (!sop) return;
-
   const versions = await fetchVersions(id);
 
-  const tags = (sop.tags || [])
-    .map(t => `<span class="badge">${escapeHtml(t)}</span>`)
-    .join('');
-
+  const tags = (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('');
   const vRows = versions.map(v => `
     <div class="version-row">
       <div>v${v.version_no} • ${new Date(v.created_at).toLocaleString()}</div>
@@ -152,9 +172,7 @@ async function renderSop() {
       <div>${tags}</div>
     </div>
 
-    <div class="card">
-      <div class="tile-body">${sop.current_html}</div>
-    </div>
+    <div class="card"><div class="tile-body">${sop.current_html}</div></div>
 
     <div class="card">
       <h3>Version History</h3>
@@ -165,8 +183,8 @@ async function renderSop() {
 
 async function init() {
   if (!(await requireAuth())) return;
+  bindModalEvents();
   await renderSop();
-  // respond to manual hash changes
   window.addEventListener('hashchange', renderSop);
 }
 init();
