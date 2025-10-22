@@ -89,41 +89,66 @@ async function showView(view) {
 }
 
 function wireNav() {
-  const navLinks = document.querySelectorAll('.nav .nav-link[href="#"]');
-  const createButton = document.getElementById('create-sop-button');
-  const createView = createButton?.getAttribute('data-view') || 'create';
-
-  const setActive = (view) => {
-    navLinks.forEach((link) => {
-      const target = link.getAttribute('data-view');
-      link.classList.toggle('active', target === view);
-    });
-    if (createButton) {
-      createButton.classList.toggle('active', view === createView);
-    }
+  const dropdown = document.getElementById('nav-dropdown');
+  const trigger = document.getElementById('nav-trigger');
+  const menu = document.getElementById('nav-menu');
+  const links = menu ? menu.querySelectorAll('.nav-link[href="#"]') : [];
+  const updateTriggerState = () => {
+    if (!trigger) return;
+    const active = menu?.querySelector('.nav-link.active');
+    trigger.classList.toggle('active', !!active);
+  };
+  const closeDropdown = () => {
+    if (!dropdown) return;
+    dropdown.classList.remove('open');
+    trigger?.setAttribute('aria-expanded', 'false');
+    menu?.setAttribute('aria-hidden', 'true');
+    updateTriggerState();
   };
 
-  navLinks.forEach((link) => {
-    link.addEventListener('click', async (e) => {
+  links.forEach((a) => {
+    a.addEventListener('click', async (e) => {
       e.preventDefault();
       const view = link.getAttribute('data-view');
       if (!view) return;
       if (!(await requireAuth())) return;
-      setActive(view);
+      document.querySelectorAll('.nav-link').forEach((x) => x.classList.toggle('active', x === a));
+      updateTriggerState();
+      closeDropdown();
       await showView(view);
     });
   });
 
-  if (createButton) {
-    createButton.addEventListener('click', async (e) => {
+  if (dropdown && trigger) {
+    trigger.addEventListener('click', (e) => {
       e.preventDefault();
-      if (!(await requireAuth())) return;
-      setActive(createView);
-      await showView(createView);
+      const isOpen = dropdown.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', String(isOpen));
+      menu?.setAttribute('aria-hidden', String(!isOpen));
+      trigger.classList.toggle('active', isOpen || !!menu?.querySelector('.nav-link.active'));
+      if (isOpen) {
+        const active = menu?.querySelector('.nav-link.active');
+        (active || menu?.querySelector('.nav-link'))?.focus({ preventScroll: true });
+      }
     });
-  }
 
-  setActive('sops');
+    document.addEventListener('click', (event) => {
+      if (!dropdown.contains(event.target)) {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (dropdown.classList.contains('open')) {
+          closeDropdown();
+          trigger.focus({ preventScroll: true });
+        }
+      }
+    });
+
+    updateTriggerState();
+  }
 }
 
 // ---------------- Filters ----------------
@@ -433,7 +458,7 @@ async function saveSop() {
     return alert(`Save failed: ${data.error || res.status}`);
   }
   clearCreateForm();
-  document.querySelector('.nav .nav-link[data-view="sops"]')?.click();
+  document.querySelector('.nav-menu .nav-link[data-view="sops"]')?.click();
 }
 
 // ---------------- Init ----------------
