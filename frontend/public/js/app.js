@@ -338,7 +338,7 @@ async function reloadClientSops() {
   const items = data.items || [];
 
   if (tileGrid) {
-    tileGrid.innerHTML = items.map(tileHtml).join('') || '<p class="muted">No client SOPs yet.</p>';
+    tileGrid.innerHTML = items.map(tileHtml).join('') || '<p class="muted">Il n\'y a pas de SOP client pour le moment.</p>';
     attachTileInteractions(tileGrid, { enableCategoryFilters: false, enableTagFilters: false });
   }
 }

@@ -171,6 +171,7 @@ body>* {
     color: rgba(31, 41, 55, 0.72);
     padding: 6px 0;
     transition: color var(--transition);
+    text-decoration: none;
 }
 
 .nav-link::after {

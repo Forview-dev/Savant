@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Savant! — Dashboard</title>
+    <title>Savant!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="api-base-url" content="http://localhost:4000" />
     <link rel="stylesheet" href="/styles/base.css" />
@@ -12,14 +12,14 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <h1>Savant!</h1>
+            <h1>Savant! <em><small>for ttom</small></em></h1>
             <nav class="nav">
-                <a href="#" class="nav-link active" data-view="sops">Dashboard</a>
-                <a href="#" class="nav-link" data-view="client-sops">Client SOPs</a>
+                <a href="#" class="nav-link active" data-view="sops">Tableau de bord</a>
+                <a href="#" class="nav-link" data-view="client-sops">Clients</a>
             </nav>
             <div class="header-controls">
-                <button type="button" id="create-sop-button" class="create-sop-button" data-view="create">Create SOP</button>
-                <div id="user-pill" class="user-pill">Not signed in</div>
+                <button type="button" id="create-sop-button" class="create-sop-button" data-view="create">Nouveau SOP</button>
+                <div id="user-pill" class="user-pill">Non connecté</div>
             </div>
         </div>
     </header>
@@ -27,23 +27,22 @@
     <main class="container">
         <!-- SOPs View -->
         <section id="view-sops">
-            <h2>All SOPs</h2>
             <div class="card">
                 <div class="row" style="flex-wrap: wrap; gap: 16px;">
                     <div style="display:flex; flex-direction:column;">
-                        <label for="filter-q" class="muted">Search</label>
-                        <input id="filter-q" type="text" placeholder="Search SOPs..." />
+                        <label for="filter-q" class="muted">Rechercher</label>
+                        <input id="filter-q" type="text" placeholder="Rechercher SOP ..." />
                     </div>
                     <div style="display:flex; flex-direction:column;">
-                        <label for="filter-category" class="muted">Category</label>
-                        <input id="filter-category" type="text" placeholder="Category..." />
+                        <label for="filter-category" class="muted">Catégorie</label>
+                        <input id="filter-category" type="text" placeholder="Catégorie ..." />
                     </div>
                     <div style="display:flex; flex-direction:column;">
                         <label for="filter-tags" class="muted">Tags</label>
-                        <input id="filter-tags" type="text" placeholder="Tags (comma-separated)" />
+                        <input id="filter-tags" type="text" placeholder="Tags (séparateur: ,)" />
                     </div>
                     <div style="display:flex; align-items:flex-end;">
-                        <button id="apply-filters" onclick="applyFilters()">Apply</button>
+                        <button id="apply-filters" onclick="applyFilters()">Appliquer</button>
                     </div>
                 </div>
             </div>
@@ -55,19 +54,19 @@
 
         <!-- Client SOPs View -->
         <section id="view-client-sops" style="display:none;">
-            <h2>Client SOPs</h2>
+            <h2>Client specs.</h2>
             <div class="card">
                 <div class="row" style="flex-wrap: wrap; gap: 16px;">
                     <div style="display:flex; flex-direction:column;">
-                        <label for="client-filter-q" class="muted">Search</label>
-                        <input id="client-filter-q" type="text" placeholder="Search client SOPs..." />
+                        <label for="client-filter-q" class="muted">Rechercher</label>
+                        <input id="client-filter-q" type="text" placeholder="Rechercher SOP ..." />
                     </div>
                     <div style="display:flex; flex-direction:column;">
-                        <label for="client-filter-name" class="muted">Client Name</label>
-                        <input id="client-filter-name" type="text" placeholder="Client name..." />
+                        <label for="client-filter-name" class="muted">Nom du client</label>
+                        <input id="client-filter-name" type="text" placeholder="Nom du client..." />
                     </div>
                     <div style="display:flex; align-items:flex-end;">
-                        <button id="client-apply-filters" onclick="applyClientFilters()">Apply</button>
+                        <button id="client-apply-filters" onclick="applyClientFilters()">Appliquer</button>
                     </div>
                 </div>
             </div>
@@ -79,47 +78,47 @@
 
         <!-- Create SOP View -->
         <section id="view-create" style="display:none;">
-            <h2>Create New SOP</h2>
+            <h2>Créer un nouveau SOP</h2>
             <div class="card">
                 <div class="row" style="flex-wrap: wrap; gap: 16px;">
                     <div style="display:flex; flex-direction:column;">
-                        <label for="sop-title" class="muted">Title</label>
-                        <input id="sop-title" type="text" placeholder="SOP Title" />
+                        <label for="sop-title" class="muted">Titre</label>
+                        <input id="sop-title" type="text" placeholder="Titre du SOP" />
                     </div>
                     <div style="display:flex; flex-direction:column;">
-                        <label for="sop-category" class="muted">Category</label>
-                        <input id="sop-category" type="text" placeholder="Category" />
+                        <label for="sop-category" class="muted">Catégorie</label>
+                        <input id="sop-category" type="text" placeholder="Catégorie" />
                     </div>
                     <div style="display:flex; flex-direction:column;">
                         <label for="sop-tags" class="muted">Tags</label>
-                        <input id="sop-tags" type="text" placeholder="Tags (comma-separated)" />
+                        <input id="sop-tags" type="text" placeholder="Tags (séparateur: ,)" />
                     </div>
                 </div>
 
                 <div style="margin-top:20px;">
-                    <label for="editor" class="muted">Content</label>
+                    <label for="editor" class="muted">Contenu</label>
                     <div id="editor" class="quill" style="margin-top:8px;"></div>
                 </div>
 
                 <div class="row" style="margin-top:20px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <input id="sop-is-client" type="checkbox" />
-                        <label for="sop-is-client" class="muted" style="cursor:pointer;">Client-specific SOP</label>
+                        <label for="sop-is-client" class="muted" style="cursor:pointer;">SOP client</label>
                     </div>
                     <div id="client-name-wrapper" style="display:none; flex:1; flex-direction:column;">
-                        <label for="sop-client-name" class="muted">Client Name</label>
-                        <input id="sop-client-name" type="text" placeholder="Client name" />
+                        <label for="sop-client-name" class="muted">Nom du client</label>
+                        <input id="sop-client-name" type="text" placeholder="Nom du client" />
                     </div>
                 </div>
 
                 <div class="row" style="margin-top:20px;">
                     <div style="display:flex; flex-direction:column; flex:1;">
-                        <label for="sop-message" class="muted">Version Message</label>
-                        <input id="sop-message" type="text" placeholder="Describe the change (optional)" />
+                        <label for="sop-message" class="muted">Notes de verdsion</label>
+                        <input id="sop-message" type="text" placeholder="Décrivez les changements (optionel)" />
                     </div>
                     <div style="display:flex; align-items:flex-end; gap:10px;">
-                        <button id="save-sop">Save SOP</button>
-                        <button id="clear-editor" class="ghost">Clear</button>
+                        <button id="save-sop">Sauvegarder</button>
+                        <button id="clear-editor" class="ghost">Vider</button>
                     </div>
                 </div>
             </div>
