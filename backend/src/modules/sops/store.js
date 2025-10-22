@@ -1,11 +1,11 @@
-import { pool } from '../../db/pool.js';
+import { query } from '../../lib/db.js';
 
 function nowIso() {
   return new Date().toISOString();
 }
 
 export async function listSops() {
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `SELECT id, title, category, tags, author_email, current_delta, current_html, created_at, updated_at, deleted_at
      FROM sops
      WHERE deleted_at IS NULL
@@ -55,12 +55,12 @@ export async function listSopsFiltered({ q, category, tags, sort }) {
     WHERE ${clauses.join(' AND ')}
     ${order};
   `;
-  const { rows } = await pool.query(sql, params);
+  const { rows } = await query(sql, params);
   return rows;
 }
 
 export async function getSop(id) {
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `SELECT id, title, category, tags, author_email, current_delta, current_html, created_at, updated_at, deleted_at
      FROM sops WHERE id=$1 AND deleted_at IS NULL;`,
     [id]
@@ -69,7 +69,7 @@ export async function getSop(id) {
 }
 
 export async function createSop({ title, category, tags, delta, html, author_email, message }) {
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `INSERT INTO sops (title, category, tags, author_email, current_delta, current_html, plain_text)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id, title, category, tags, author_email, current_delta, current_html, created_at, updated_at, deleted_at;`,
@@ -77,7 +77,7 @@ export async function createSop({ title, category, tags, delta, html, author_ema
   );
   const sop = rows[0];
 
-  await pool.query(
+  await query(
     `INSERT INTO sop_versions (sop_id, version_no, delta, html, author_email, message)
      VALUES ($1, 1, $2, $3, $4, $5);`,
     [sop.id, delta, html, author_email, message || 'Initial version']
@@ -86,7 +86,7 @@ export async function createSop({ title, category, tags, delta, html, author_ema
 }
 
 export async function updateSop(id, { title, category, tags, delta, html, author_email, message }) {
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `UPDATE sops
      SET title=COALESCE($2, title),
          category=COALESCE($3, category),
@@ -102,13 +102,13 @@ export async function updateSop(id, { title, category, tags, delta, html, author
   const updated = rows[0];
   if (!updated) return null;
 
-  const { rows: ver } = await pool.query(
+  const { rows: ver } = await query(
     `SELECT COALESCE(MAX(version_no), 0) + 1 AS next_no FROM sop_versions WHERE sop_id=$1;`,
     [id]
   );
   const nextNo = ver[0].next_no;
 
-  await pool.query(
+  await query(
     `INSERT INTO sop_versions (sop_id, version_no, delta, html, author_email, message)
      VALUES ($1, $2, $3, $4, $5, $6);`,
     [id, nextNo, delta, html, author_email, message || 'Update']
@@ -118,7 +118,7 @@ export async function updateSop(id, { title, category, tags, delta, html, author
 }
 
 export async function softDeleteSop(id) {
-  const { rowCount } = await pool.query(
+  const { rowCount } = await query(
     `UPDATE sops SET deleted_at=NOW() WHERE id=$1 AND deleted_at IS NULL;`,
     [id]
   );
@@ -126,7 +126,7 @@ export async function softDeleteSop(id) {
 }
 
 export async function listVersions(id) {
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `SELECT version_no, author_email, message, created_at
      FROM sop_versions
      WHERE sop_id=$1
@@ -137,7 +137,7 @@ export async function listVersions(id) {
 }
 
 export async function getVersion(id, version_no) {
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `SELECT version_no, delta, html, author_email, message, created_at
      FROM sop_versions
      WHERE sop_id=$1 AND version_no=$2;`,
@@ -150,7 +150,7 @@ export async function restoreVersion(id, version_no, author_email) {
   const v = await getVersion(id, version_no);
   if (!v) return null;
 
-  const { rows } = await pool.query(
+  const { rows } = await query(
     `UPDATE sops
      SET current_delta=$2,
          current_html=$3,
@@ -163,13 +163,13 @@ export async function restoreVersion(id, version_no, author_email) {
   const updated = rows[0];
   if (!updated) return null;
 
-  const { rows: ver } = await pool.query(
+  const { rows: ver } = await query(
     `SELECT COALESCE(MAX(version_no), 0) + 1 AS next_no FROM sop_versions WHERE sop_id=$1;`,
     [id]
   );
   const nextNo = ver[0].next_no;
 
-  await pool.query(
+  await query(
     `INSERT INTO sop_versions (sop_id, version_no, delta, html, author_email, message)
      VALUES ($1, $2, $3, $4, $5, $6);`,
     [id, nextNo, v.delta, v.html, author_email, `Restore from v${version_no}`]
