@@ -16,21 +16,68 @@ import { query } from './lib/db.js';
 const logger = pino({ level: env.LOG_LEVEL });
 const app = express();
 
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+function compileCorsMatcher(patterns) {
+  const matchers = (patterns || [])
+    .map((pattern) => {
+      if (!pattern) return null;
+      if (pattern.includes('*')) {
+        const escaped = pattern
+          .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+          .replace(/\\\*/g, '.*');
+        const regex = new RegExp(`^${escaped}$`);
+        return (origin) => regex.test(origin);
+      }
+      return (origin) => origin === pattern;
+    })
+    .filter(Boolean);
+
+  if (!matchers.length) {
+    return () => true;
+  }
+
+  return (origin) => {
+    if (!origin) return true;
+    return matchers.some((match) => match(origin));
+  };
+}
+
+const isAllowedOrigin = compileCorsMatcher(env.FRONTEND_ORIGINS);
+const corsMiddleware = cors({
+  credentials: true,
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, origin);
+    logger.warn({ origin }, 'Blocked request due to disallowed CORS origin');
+    return callback(new Error('Not allowed by CORS'));
+  },
+});
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
   })
 );
-app.use(
-  cors({
-    origin: env.FRONTEND_ORIGIN,
-    credentials: true,
-  })
-);
+app.options('*', corsMiddleware);
+app.use((req, res, next) => {
+  corsMiddleware(req, res, (err) => {
+    if (!err) return next();
+    return res.status(403).json({ error: 'Origin not allowed' });
+  });
+});
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => req.url === '/healthz',
+    },
+  })
+);
 
 app.set('signSession', signSession);
 
@@ -39,6 +86,7 @@ app.get('/', (req, res) => {
     name: 'sop-backend',
     status: 'ok',
     env: env.NODE_ENV,
+    allowedOrigins: env.FRONTEND_ORIGINS,
     message: 'SOP backend API is running.',
   });
 });
@@ -98,5 +146,8 @@ app.use((err, req, res, _next) => {
 });
 
 app.listen(env.PORT, () => {
-  logger.info({ port: env.PORT, frontend: env.FRONTEND_ORIGIN }, 'API listening');
+  logger.info(
+    { port: env.PORT, frontend: env.FRONTEND_ORIGIN, origins: env.FRONTEND_ORIGINS },
+    'API listening'
+  );
 });

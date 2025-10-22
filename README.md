@@ -168,7 +168,45 @@ with **GitHub integration for CI/CD**.
 | Database   | PostgreSQL                  |
 | Auth       | Magic link via email        |
 | Editor     | Quill.js                    |
-| Deployment | Render (frontend + backend) |
+| Deployment | Render (backend) + Cloudflare Pages (frontend) |
 | CI/CD      | GitHub auto-deploy          |
 
 ---
+
+## 🚀 Production Deployment
+
+### Backend (Render Web Service)
+
+Configure the Render service in `render.yaml` or via the dashboard with the
+following environment variables:
+
+| Variable              | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `DATABASE_URL`        | Render-managed PostgreSQL connection string                      |
+| `APP_BASE_URL`        | Public URL of the backend (e.g. `https://savant-backend.onrender.com`) |
+| `FRONTEND_ORIGINS`    | Comma or space separated list of allowed frontend origins        |
+| `JWT_SECRET`          | Secret used to sign session tokens                               |
+| `COOKIE_SECURE`       | `true` in production to set Secure cookies                       |
+| `COOKIE_SAMESITE`     | `none` for cross-origin requests from Cloudflare Pages            |
+| `DB_SSL`              | `true` when using Render PostgreSQL                              |
+| `DB_DISABLE_IPV6`     | `true` to prefer IPv4 when connecting to the database            |
+| `SMTP_HOST` (optional)| SMTP host for production magic-link email delivery               |
+| `SMTP_*` (optional)   | `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE`, `SMTP_FROM` |
+
+> ⚠️ `FRONTEND_ORIGINS` accepts wildcards (e.g. `https://*.pages.dev`) and determines which
+> origins are allowed by CORS while keeping cookies enabled for authenticated requests.
+
+### Frontend (Cloudflare Pages)
+
+Deploy the `frontend` directory to Cloudflare Pages. The bundled
+`_worker.js` serves `/env.js`, which injects runtime configuration. Define the
+following environment variables in the Pages project:
+
+| Variable         | Description                                              |
+| ---------------- | -------------------------------------------------------- |
+| `API_BASE_URL`   | Public URL of the Render backend                         |
+| `FRONTEND_ORIGIN`| (Optional) Explicit frontend origin exposed to the worker |
+| `APP_ENV`        | (Optional) Environment label shown in telemetry/config   |
+
+The static `public/env.js` file keeps local development working by defaulting
+to `http://localhost:4000` when Cloudflare-provided values are absent.

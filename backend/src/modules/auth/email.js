@@ -1,8 +1,6 @@
 import nodemailer from 'nodemailer';
 import { env } from '../../config/env.js';
 
-const isProd = env.NODE_ENV === 'production';
-
 const devTransport = {
   async sendMail({ to, subject, text }) {
     console.log('\n\n===============================');
@@ -13,27 +11,42 @@ const devTransport = {
   },
 };
 
-const smtpTransport = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  auth: process.env.SMTP_USER
-    ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    : undefined,
-});
+function createSmtpTransport() {
+  if (!env.SMTP.host) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: env.SMTP.host,
+    port: env.SMTP.port,
+    secure: env.SMTP.secure,
+    auth: env.SMTP.user
+      ? { user: env.SMTP.user, pass: env.SMTP.pass }
+      : undefined,
+  });
+}
+
+const smtpTransport = createSmtpTransport();
+
+if (!smtpTransport && env.NODE_ENV === 'production') {
+  console.warn(
+    'SMTP credentials are not configured. Magic link emails will be logged to the console.'
+  );
+}
 
 export async function sendLoginEmail(toEmail, verifyUrl, req) {
+  const expires = env.MAGIC_LINK_EXPIRY_MIN;
   const subject = 'Your login link — SOP Web App';
-  const text = `Click to sign in:\n${verifyUrl}\nThis link expires in 15 minutes.`;
+  const text = `Click to sign in:\n${verifyUrl}\nThis link expires in ${expires} minutes.`;
   const html = `
     <p>Click to sign in:</p>
     <p><a href="${verifyUrl}">${verifyUrl}</a></p>
-    <p>This link expires in 15 minutes.</p>
+    <p>This link expires in ${expires} minutes.</p>
   `;
 
-  const transport = isProd ? smtpTransport : devTransport;
+  const transport = smtpTransport || devTransport;
   const info = await transport.sendMail({
-    from: 'no-reply@sop-app.local',
+    from: env.SMTP.from,
     to: toEmail,
     subject,
     text,
@@ -41,7 +54,7 @@ export async function sendLoginEmail(toEmail, verifyUrl, req) {
   });
 
   req.log.info(
-    { to: toEmail, messageId: info.messageId },
-    'Magic link email (dev or prod) sent.'
+    { to: toEmail, messageId: info.messageId, smtp: Boolean(smtpTransport) },
+    'Magic link email sent.'
   );
 }
