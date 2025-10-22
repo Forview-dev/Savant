@@ -1,29 +1,5 @@
-
-function getApiBaseUrl() {
-  const meta = document.querySelector('meta[name="api-base-url"]');
-  const raw = meta?.getAttribute('content')?.trim();
-  const fallbackLocal = 'http://localhost:4000';
-
-  if (raw) {
-    try {
-      const resolved = new URL(raw, window.location.origin);
-      if (window.location.protocol === 'https:' && resolved.protocol === 'http:') {
-        resolved.protocol = 'https:';
-      }
-      return resolved.href.replace(/\/+$/, '');
-    } catch (err) {
-      console.warn('Invalid api-base-url meta', err);
-    }
-  }
-
-  if (window.location.protocol === 'https:') {
-    return window.location.origin;
-  }
-
-  return fallbackLocal;
-}
-
 async function fetchMe() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   try {
     const res = await fetch(`${apiBase}/me`, { credentials: 'include' });
@@ -35,6 +11,7 @@ async function fetchMe() {
 }
 
 async function logoutUser() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   try {
     const res = await fetch(`${apiBase}/auth/logout`, {
@@ -284,6 +261,7 @@ function attachTileInteractions(tileGrid, { enableCategoryFilters = true, enable
 }
 
 async function reloadSops() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   const tileGrid = document.getElementById('sop-tiles');
   if (tileGrid) tileGrid.innerHTML = 'Loading...';
@@ -314,6 +292,7 @@ async function reloadSops() {
 }
 
 async function reloadClientSops() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   const tileGrid = document.getElementById('client-sop-tiles');
   if (tileGrid) tileGrid.innerHTML = 'Loading...';
@@ -448,6 +427,7 @@ function syncClientFieldsVisibility() {
   wrapper.style.display = toggle.checked ? 'flex' : 'none';
 }
 async function saveSop() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   const payload = readCreateForm();
   if (!payload.title) return alert('Title is required.');
@@ -473,6 +453,7 @@ async function saveSop() {
 
 // ---------------- Init ----------------
 async function init() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   if (!(await requireAuth())) return;
   wireNav();
   const clientToggle = document.getElementById('sop-is-client');
