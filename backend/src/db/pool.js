@@ -1,4 +1,5 @@
 import dns from 'node:dns/promises';
+import { lookup as dnsLookup } from 'node:dns';
 import net from 'node:net';
 import { Pool } from 'pg';
 import { env } from '../config/env.js';
@@ -47,6 +48,20 @@ async function ensureIPv4(connectionString) {
 }
 
 const connectionString = await ensureIPv4(env.DATABASE_URL);
+
+function preferIPv4Lookup(hostname, options, callback) {
+  if (!env.DB_DISABLE_IPV6) {
+    return dnsLookup(hostname, options, callback);
+  }
+
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+
+  const opts = { ...options, family: 4 };
+  return dnsLookup(hostname, opts, callback);
+}
 
 export const pool = new Pool({
   connectionString,
