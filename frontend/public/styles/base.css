@@ -285,6 +285,30 @@ body>* {
     color: #34d399;
 }
 
+.user-pill .logout-button {
+    margin-left: 8px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 999px;
+    background: var(--accent-2);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+}
+
+.user-pill .logout-button:hover,
+.user-pill .logout-button:focus {
+    background: var(--accent);
+    transform: translateY(-1px);
+}
+
+.user-pill .logout-button:focus-visible {
+    outline: 2px solid rgba(81, 97, 255, 0.35);
+    outline-offset: 2px;
+}
+
 /* === ROLE BADGES INSIDE PILL === */
 .role {
     font-weight: 600;
@@ -621,6 +645,12 @@ button.danger:hover {
 
     .user-pill {
         align-self: flex-end;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .user-pill .logout-button {
+        flex: 0 0 auto;
     }
 }
 
