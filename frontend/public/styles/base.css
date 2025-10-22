@@ -1,14 +1,10 @@
 :root {
-    --bg: #f3f6ff;
-    --bg-gradient-top: #eef1ff;
-    --bg-gradient-bottom: #d7e3ff;
-    --fg: #1f2937;
-    --fg-muted: #6b7280;
+    --bg: #f7f9fc;
+    --fg: #1e293b;
+    --muted: #64748b;
     --card: #ffffff;
-    --card-muted: #f8faff;
-    --accent: #5161ff;
-    --accent-2: #3b46e0;
-    --accent-soft: rgba(81, 97, 255, 0.12);
+    --accent: #3b82f6;
+    --accent-2: #0ea5e9;
     --danger: #ef4444;
     --radius-lg: 20px;
     --radius: 14px;
@@ -71,8 +67,9 @@ body>* {
 
 /* Header */
 .site-header {
-    background: transparent;
-    border-bottom: none;
+    background: #eaf3ff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .header-inner {
@@ -104,60 +101,63 @@ body>* {
     gap: 20px;
 }
 
+.site-header a {
+    color: inherit;
+}
+
 .nav .nav-link {
-    position: relative;
-    font-weight: 500;
-    font-size: 15px;
-    color: rgba(31, 41, 55, 0.72);
-    padding: 6px 0;
-    transition: color var(--transition);
+    color: var(--fg);
+    margin-right: 14px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
 }
 
-.nav .nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -10px;
-    height: 3px;
-    border-radius: 999px;
-    background: transparent;
-    transition: background var(--transition), transform var(--transition);
-    transform: scaleX(0.5);
-    transform-origin: center;
-}
-
-.nav .nav-link:hover,
-.nav .nav-link:focus {
-    color: var(--accent-2);
-}
-
-.nav .nav-link:hover::after,
-.nav .nav-link:focus::after {
-    background: rgba(81, 97, 255, 0.35);
-    transform: scaleX(1);
+.nav .nav-link:hover {
+    opacity: 1;
 }
 
 .nav .nav-link.active {
     color: var(--accent-2);
     font-weight: 600;
-}
-
-.nav .nav-link.active::after {
-    background: var(--accent);
-    transform: scaleX(1);
+    color: var(--accent);
+    opacity: 1;
+    text-decoration: underline;
 }
 
 .user-pill {
-    padding: 10px 18px;
+    padding: 6px 10px;
     border-radius: 999px;
-    background: rgba(81, 97, 255, 0.12);
-    border: 1px solid rgba(81, 97, 255, 0.35);
+    background: #eef4ff;
+    border: 1px solid var(--border);
     font-size: 14px;
-    color: var(--accent-2);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    color: var(--fg);
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+    margin: 8px 0;
+    color: var(--fg);
+}
+
+h1 {
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+/* Card */
+.card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .user-pill::before {
@@ -203,24 +203,18 @@ input[type="email"]:focus {
 button {
     background: linear-gradient(135deg, var(--accent), #6b7bff);
     border: none;
-    padding: 12px 24px;
-    border-radius: 999px;
+    padding: 8px 14px;
+    border-radius: 10px;
     color: #fff;
     font-weight: 600;
     font-size: 15px;
     cursor: pointer;
-    transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
-    box-shadow: 0 14px 24px rgba(81, 97, 255, 0.28);
+    transition: background 0.2s ease, transform 0.05s ease;
 }
 
 button:hover {
-    filter: brightness(1.05);
-    transform: translateY(-2px);
-    box-shadow: 0 18px 32px rgba(81, 97, 255, 0.32);
-}
-
-button:active {
-    transform: translateY(0);
+    background: var(--accent-2);
+    transform: translateY(-1px);
 }
 
 button:disabled {
@@ -244,26 +238,14 @@ button.ghost:hover {
 /* Badges / Chips */
 .badge,
 .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(81, 97, 255, 0.12);
-    border: 1px solid rgba(81, 97, 255, 0.2);
-    padding: 4px 12px;
+    display: inline-block;
+    background: #eff6ff;
+    border: 1px solid #cfe1ff;
+    padding: 2px 8px;
     border-radius: 999px;
     font-size: 12px;
     margin-right: 6px;
-    color: var(--accent-2);
-    transition: background var(--transition), border-color var(--transition), transform var(--transition);
-}
-
-.badge::before,
-.chip::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-2);
+    color: var(--accent);
 }
 
 .chip {
@@ -272,9 +254,8 @@ button.ghost:hover {
 }
 
 .chip:hover {
-    background: rgba(81, 97, 255, 0.22);
-    border-color: rgba(81, 97, 255, 0.32);
-    transform: translateY(-1px);
+    background: #e6f0ff;
+    border-color: #b9d2ff;
 }
 
 /* Lists */
@@ -362,59 +343,37 @@ button.ghost:hover {
 /* Tiles */
 .tile-grid {
     display: grid;
-    gap: 22px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    margin-top: 20px;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .tile {
-    position: relative;
-    background: linear-gradient(165deg, #ffffff, #f5f7ff 80%);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    border-radius: 22px;
-    padding: 24px 26px 22px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
     cursor: pointer;
-    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
-}
-
-.tile::before {
-    content: "";
-    position: absolute;
-    inset: -60px auto auto -40px;
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    background: rgba(81, 97, 255, 0.12);
-    filter: blur(0.5px);
+    transition: box-shadow 0.2s ease, transform 0.05s ease;
 }
 
 .tile:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(81, 97, 255, 0.35);
-}
-
-.tile>* {
-    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
 }
 
 .tile .tile-title {
     font-weight: 700;
     color: var(--fg);
-    font-size: 18px;
-    letter-spacing: 0.2px;
 }
 
 .tile .tile-meta {
-    color: var(--fg-muted);
-    font-size: 14px;
-    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
 }
 
 .tile .tile-tags {
-    margin-top: 18px;
+    margin-top: 6px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
