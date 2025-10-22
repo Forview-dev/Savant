@@ -45,4 +45,5 @@ export const pool = new Pool({
   ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,
   max: 10,
   idleTimeoutMillis: 30_000,
+  lookup: preferIPv4Lookup,
 });
