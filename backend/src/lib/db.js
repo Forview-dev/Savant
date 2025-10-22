@@ -1,15 +1,25 @@
-import pg from 'pg';
-const { Pool } = pg;
+import { pool } from '../db/pool.js';
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DB_SSL_DISABLED === 'true' ? false : { rejectUnauthorized: false },
-});
+export { pool };
 
-export async function query(text, params) {
+export function query(text, params) {
+  return pool.query(text, params);
+}
+
+export async function withTransaction(work) {
   const client = await pool.connect();
   try {
-    return await client.query(text, params);
+    await client.query('BEGIN');
+    const result = await work(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    try {
+      await client.query('ROLLBACK');
+    } catch (rollbackErr) {
+      console.error('Failed to rollback transaction', rollbackErr);
+    }
+    throw err;
   } finally {
     client.release();
   }

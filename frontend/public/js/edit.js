@@ -1,28 +1,3 @@
-
-function getApiBaseUrl() {
-  const meta = document.querySelector('meta[name="api-base-url"]');
-  const raw = meta?.getAttribute('content')?.trim();
-  const fallbackLocal = 'http://localhost:4000';
-
-  if (raw) {
-    try {
-      const resolved = new URL(raw, window.location.origin);
-      if (window.location.protocol === 'https:' && resolved.protocol === 'http:') {
-        resolved.protocol = 'https:';
-      }
-      return resolved.href.replace(/\/+$/, '');
-    } catch (err) {
-      console.warn('Invalid api-base-url meta', err);
-    }
-  }
-
-  if (window.location.protocol === 'https:') {
-    return window.location.origin;
-  }
-
-  return fallbackLocal;
-}
-
 let CURRENT_USER = null;
 let quill = null;
 let quillLoadingPromise = null;
@@ -42,6 +17,7 @@ function setStatus(msg, isError = false) {
 }
 
 async function fetchMe() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   try {
     const res = await fetch(`${apiBase}/me`, { credentials: 'include' });
@@ -54,6 +30,7 @@ async function fetchMe() {
 }
 
 async function logoutUser() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   const apiBase = getApiBaseUrl();
   try {
     const res = await fetch(`${apiBase}/auth/logout`, {
@@ -263,6 +240,7 @@ async function loadAndFill(id) {
 }
 
 async function init() {
+  await (window.SavantConfig?.ready || Promise.resolve());
   if (!(await requireAuthEditor())) return;
 
   const id = getSopIdFromHash();
