@@ -35,5 +35,6 @@ export const env = {
 
   DATABASE_URL: required('DATABASE_URL'),
   DB_SSL: toBool(process.env.DB_SSL, false),
-  DB_PREFER_IPV4: toBool(process.env.DB_PREFER_IPV4, true),
+  DB_DISABLE_IPV6: toBool(process.env.DB_DISABLE_IPV6, true),
+  DB_IPV4_HOST: process.env.DB_IPV4_HOST,
 };
