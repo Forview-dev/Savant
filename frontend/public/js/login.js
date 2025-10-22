@@ -1,6 +1,26 @@
+
 function getApiBaseUrl() {
   const meta = document.querySelector('meta[name="api-base-url"]');
-  return meta?.getAttribute('content') || 'http://localhost:4000';
+  const raw = meta?.getAttribute('content')?.trim();
+  const fallbackLocal = 'http://localhost:4000';
+
+  if (raw) {
+    try {
+      const resolved = new URL(raw, window.location.origin);
+      if (window.location.protocol === 'https:' && resolved.protocol === 'http:') {
+        resolved.protocol = 'https:';
+      }
+      return resolved.href.replace(/\/+$/, '');
+    } catch (err) {
+      console.warn('Invalid api-base-url meta', err);
+    }
+  }
+
+  if (window.location.protocol === 'https:') {
+    return window.location.origin;
+  }
+
+  return fallbackLocal;
 }
 
 function getRedirectTarget() {
