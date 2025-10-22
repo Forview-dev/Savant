@@ -13,15 +13,12 @@
     <header class="site-header">
         <div class="container header-inner">
             <h1>Savant!</h1>
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-view="sops">Dashboard</a>
+                <a href="#" class="nav-link" data-view="client-sops">Client SOPs</a>
+            </nav>
             <div class="header-controls">
-                <div class="nav-dropdown" id="nav-dropdown">
-                    <button type="button" id="nav-trigger" class="nav-trigger nav-link" aria-haspopup="menu" aria-expanded="false" aria-controls="nav-menu">SOPs</button>
-                    <div class="nav-menu" id="nav-menu" role="menu" aria-hidden="true">
-                        <a href="#" class="nav-link active" data-view="sops" role="menuitem">Dashboard</a>
-                        <a href="#" class="nav-link" data-view="client-sops" role="menuitem">Client SOPs</a>
-                        <a href="#" class="nav-link" data-view="create" role="menuitem">Create SOP</a>
-                    </div>
-                </div>
+                <button type="button" id="create-sop-button" class="create-sop-button" data-view="create">Create SOP</button>
                 <div id="user-pill" class="user-pill">Not signed in</div>
             </div>
         </div>
