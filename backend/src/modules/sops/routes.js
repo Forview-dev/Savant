@@ -24,6 +24,13 @@ function normalizeTags(raw) {
   return raw?.length ? raw : [];
 }
 
+function sanitizeTags(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(tag => (typeof tag === 'string' ? tag.trim() : ''))
+    .filter(Boolean);
+}
+
 /**
  * Build WHERE clause for filters.
  * Supports:
@@ -31,7 +38,7 @@ function normalizeTags(raw) {
  * - client_name        → ILIKE
  * - q                  → ILIKE on title/category/client_name
  * - category           → ILIKE
- * - tags=a,b,c         → JSONB contains all
+ * - tags=a,b,c         → array contains all
  */
 function buildWhere(params) {
   const where = [];
@@ -67,8 +74,8 @@ function buildWhere(params) {
       .filter(Boolean);
 
     if (tagsArr.length) {
-      args.push(JSON.stringify(tagsArr));
-      where.push(`tags @> $${args.length}::jsonb`);
+      args.push(tagsArr);
+      where.push(`tags @> $${args.length}::text[]`);
     }
   }
 
@@ -154,17 +161,17 @@ sopsRouter.post('/sops', requireAuthOptional, async (req, res) => {
     const { title, category, tags, html, delta, message, is_client, client_name } = req.body || {};
     if (!title || !html) return res.status(400).json({ error: 'title and html are required' });
 
-    const safeTags = Array.isArray(tags) ? tags : [];
+    const safeTags = sanitizeTags(tags);
     const clientFlag = !!is_client;
     const clientName = clientFlag ? (client_name || null) : null;
 
     const { rows } = await query(
       `
       INSERT INTO sops (title, category, tags, current_html, is_client, client_name, updated_at)
-      VALUES ($1, $2, $3::jsonb, $4, $5, $6, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
       RETURNING id
       `,
-      [title, category || 'General', JSON.stringify(safeTags), html, clientFlag, clientName]
+      [title, category || 'General', safeTags, html, clientFlag, clientName]
     );
 
     // Optional version record
@@ -194,29 +201,46 @@ sopsRouter.put('/sops/:id', requireAuthOptional, async (req, res) => {
     const { title, category, tags, html, delta, message, is_client, client_name } = req.body || {};
     if (!title || !html) return res.status(400).json({ error: 'title and html are required' });
 
-    const safeTags = Array.isArray(tags) ? tags : [];
+    const fields = [];
+    const args = [];
+    let idx = 1;
 
-    const fields = [
-      'title = $1',
-      'category = $2',
-      'tags = $3::jsonb',
-      'current_html = $4',
-      'updated_at = NOW()'
-    ];
-    const args = [title, category || 'General', JSON.stringify(safeTags), html];
+    fields.push(`title = $${idx}`);
+    args.push(title);
+    idx++;
+
+    fields.push(`category = $${idx}`);
+    args.push(category || 'General');
+    idx++;
+
+    if (Array.isArray(tags)) {
+      const safeTags = sanitizeTags(tags);
+      fields.push(`tags = $${idx}`);
+      args.push(safeTags);
+      idx++;
+    }
+
+    fields.push(`current_html = $${idx}`);
+    args.push(html);
+    idx++;
+
+    fields.push('updated_at = NOW()');
 
     // client fields optional in update
     if (typeof is_client === 'boolean') {
-      fields.push(`is_client = $${args.length + 1}`);
+      fields.push(`is_client = $${idx}`);
       args.push(is_client);
-      fields.push(`client_name = $${args.length + 1}`);
+      idx++;
+
+      fields.push(`client_name = $${idx}`);
       args.push(is_client ? (client_name || null) : null);
+      idx++;
     }
 
     args.push(req.params.id);
 
     await query(
-      `UPDATE sops SET ${fields.join(', ')} WHERE id = $${args.length}`,
+      `UPDATE sops SET ${fields.join(', ')} WHERE id = $${idx}`,
       args
     );
 
