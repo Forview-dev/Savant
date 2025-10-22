@@ -9,6 +9,7 @@ import { authRouter } from './modules/auth/routes.js';
 import { requireAuthOptional, signSession } from './middleware/auth.js';
 import { sopsRouter } from './modules/sops/routes.js';
 import { query } from './lib/db.js';
+
 // import { withFreshRole } from './middleware/withFreshRole.js';
 
 
@@ -87,7 +88,7 @@ app.get('/me', requireAuthOptional, async (req, res) => {
   }
 });
 
-app.use('/sops', sopsRouter);
+app.use(sopsRouter);
 
 app.use((req, res) => res.status(404).json({ error: 'Not Found' }));
 
