@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requestMagicLink, verifyMagicToken } from './service.js';
 import { clearSessionCookie, setSessionCookie } from '../../middleware/auth.js';
+import { createRateLimiter } from '../../middleware/rateLimit.js';
 import { env } from '../../config/env.js';
 
 export const authRouter = Router();
@@ -10,7 +11,13 @@ const emailSchema = z.object({
   email: z.string().email().max(200),
 });
 
-authRouter.post('/magic-link', async (req, res) => {
+const magicLinkRateLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: 'Too many login attempts. Please try again in a little while.',
+});
+
+authRouter.post('/magic-link', magicLinkRateLimiter, async (req, res) => {
   const parse = emailSchema.safeParse(req.body);
   if (!parse.success) {
     return res.status(400).json({ error: 'Invalid email' });
