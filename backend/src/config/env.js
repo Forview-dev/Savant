@@ -27,7 +27,7 @@ export const env = {
   APP_BASE_URL: required('APP_BASE_URL', 'http://localhost:4000'),
 
   JWT_SECRET: required('JWT_SECRET', 'change-me-in-dev'),
-  JWT_EXPIRES: Number(process.env.JWT_EXPIRES || 3600), // seconds
+  JWT_EXPIRES: Number(process.env.JWT_EXPIRES || 60 * 60 * 24 * 30), // seconds (30 days)
   COOKIE_NAME: 'sid',
   COOKIE_DOMAIN: undefined, // set in prod if needed
   COOKIE_SECURE: process.env.NODE_ENV === 'production',
