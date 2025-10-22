@@ -3,6 +3,8 @@ function getApiBaseUrl() {
   return meta?.getAttribute('content') || 'http://localhost:4000';
 }
 
+let CURRENT_USER = null;
+
 async function fetchMe() {
   const apiBase = getApiBaseUrl();
   try {
@@ -21,27 +23,18 @@ async function requireAuth() {
     window.location.replace(`/login.html?redirect=${target}`);
     return false;
   }
+  CURRENT_USER = user;
   const pill = document.getElementById('user-pill');
-  if (pill) pill.textContent = user.email;
+  if (pill) pill.textContent = `${user.email}`;
   return true;
 }
 
-// Robust ID extraction: ?id=123 OR #123 OR #id=123 OR /sop/123
-function getSopId() {
-  const u = new URL(window.location.href);
-  const q = u.searchParams.get('id');
-  if (q) return q;
-
-  const hash = (u.hash || '').replace(/^#/, '');
-  if (hash) {
-    if (hash.startsWith('id=')) return hash.slice(3);
-    return hash; // plain "#123"
-  }
-
-  const m = u.pathname.match(/\/sop\/([^\/?#]+)/i);
-  if (m && m[1]) return decodeURIComponent(m[1]);
-
-  return null;
+// HASH-ONLY: sop.html#<id> or sop.html#id=<id>
+function getSopIdFromHash() {
+  const raw = (window.location.hash || '').replace(/^#/, '');
+  if (!raw) return null;
+  if (raw.startsWith('id=')) return decodeURIComponent(raw.slice(3));
+  return decodeURIComponent(raw);
 }
 
 function escapeHtml(s) {
@@ -70,17 +63,71 @@ async function fetchVersions(id) {
   return data.items || [];
 }
 
+function canEdit() {
+  const role = CURRENT_USER?.role;
+  return role === 'admin' || role === 'editor';
+}
+function canDelete() {
+  const role = CURRENT_USER?.role;
+  return role === 'admin';
+}
+
+function renderActions(id) {
+  const bar = document.getElementById('sop-actions');
+  if (!bar) return;
+  const parts = [];
+
+  if (canEdit()) {
+    parts.push(`<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Edit SOP</button></a>`);
+  }
+  if (canDelete()) {
+    parts.push(`<button id="delete-sop-btn" class="ghost" title="Delete SOP">Delete</button>`);
+  }
+
+  if (parts.length) {
+    bar.innerHTML = parts.join('');
+    bar.style.display = '';
+    const delBtn = document.getElementById('delete-sop-btn');
+    if (delBtn) {
+      delBtn.addEventListener('click', async () => {
+        const ok = confirm('Are you sure you want to delete this SOP?');
+        if (!ok) return;
+        try {
+          const apiBase = getApiBaseUrl();
+          const res = await fetch(`${apiBase}/sops/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            alert(`Delete failed: ${data.error || res.status}`);
+            return;
+          }
+          window.location.href = '/';
+        } catch (e) {
+          alert(`Delete failed: ${e.message || e}`);
+        }
+      });
+    }
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
 async function renderSop() {
   const container = document.getElementById('sop-detail');
-  const id = getSopId();
+  const id = getSopIdFromHash();
 
   if (!id) {
-    container.innerHTML = '<p class="muted">No SOP ID provided in URL.</p>';
+    container.innerHTML = '<p class="muted">No SOP ID provided. Use sop.html#&lt;id&gt;.</p>';
     return;
   }
 
+  // actions first (so buttons are visible while content loads)
+  renderActions(id);
+
   const sop = await fetchSop(id);
-  if (!sop) return; // redirected or not found
+  if (!sop) return;
 
   const versions = await fetchVersions(id);
 
@@ -96,25 +143,30 @@ async function renderSop() {
   `).join('') || '<p class="muted">No previous versions.</p>';
 
   container.innerHTML = `
-    <h2>${escapeHtml(sop.title)}</h2>
-    <p class="muted">
-      Category: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
-      Updated: ${new Date(sop.updated_at).toLocaleString()}
-    </p>
-    <div>${tags}</div>
-    <hr>
-    <div class="tile-body">${sop.current_html}</div>
-    <hr>
-    <h3>Version History</h3>
-    <div class="versions">${vRows}</div>
+    <div class="card">
+      <h2>${escapeHtml(sop.title)}</h2>
+      <p class="muted">
+        Category: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
+        Updated: ${new Date(sop.updated_at).toLocaleString()}
+      </p>
+      <div>${tags}</div>
+    </div>
+
+    <div class="card">
+      <div class="tile-body">${sop.current_html}</div>
+    </div>
+
+    <div class="card">
+      <h3>Version History</h3>
+      <div class="versions">${vRows}</div>
+    </div>
   `;
 }
 
 async function init() {
   if (!(await requireAuth())) return;
   await renderSop();
-
-  // Support client-side navigation changes to the hash (e.g., user edits URL)
+  // respond to manual hash changes
   window.addEventListener('hashchange', renderSop);
 }
 init();

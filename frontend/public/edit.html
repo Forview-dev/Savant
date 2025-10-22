@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Savant! — Edit SOP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="api-base-url" content="http://localhost:4000" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <!-- Quill CSS only; JS is lazy-loaded -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <h1><a href="/" style="text-decoration:none; color:inherit;">Savant!</a></h1>
+            <div id="user-pill" class="user-pill">Not signed in</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <h2>Edit SOP</h2>
+            <div class="row">
+                <input id="sop-title" type="text" placeholder="Title" />
+                <input id="sop-category" type="text" placeholder="Category" />
+                <input id="sop-tags" type="text" placeholder="Tags (comma-separated)" />
+            </div>
+            <div id="editor" class="quill"></div>
+            <div class="row" style="margin-top:8px">
+                <input id="sop-message" type="text" placeholder="Change note (optional)" />
+                <button id="save-sop">Save Changes</button>
+                <a id="cancel-link" href="/" class="tile-link"><button class="ghost">Cancel</button></a>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="/js/edit.js"></script>
+</body>
+
+</html>

@@ -1,26 +1,30 @@
 <!doctype html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8" />
     <title>Savant! — SOP Details</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="api-base-url" content="http://localhost:4000" />
     <link rel="stylesheet" href="/styles/base.css" />
-  </head>
-  <body>
+</head>
+
+<body>
     <header class="site-header">
-      <div class="container header-inner">
-        <h1><a href="/" style="text-decoration:none; color:inherit;">Savant!</a></h1>
-        <div id="user-pill" class="user-pill">Not signed in</div>
-      </div>
+        <div class="container header-inner">
+            <h1><a href="/" style="text-decoration:none; color:inherit;">Savant!</a></h1>
+            <div id="user-pill" class="user-pill">Not signed in</div>
+        </div>
     </header>
 
     <main class="container">
-      <div id="sop-detail" class="card">
-        <p>Loading SOP...</p>
-      </div>
+        <div id="sop-actions" class="row" style="display:none"></div>
+        <div id="sop-detail" class="card">
+            <p>Loading SOP...</p>
+        </div>
     </main>
 
     <script type="module" src="/js/sop.js"></script>
-  </body>
+</body>
+
 </html>

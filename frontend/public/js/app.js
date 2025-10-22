@@ -18,7 +18,7 @@ async function fetchMe() {
 async function requireAuth() {
   const { user } = await fetchMe();
   if (!user) {
-    const target = encodeURIComponent(window.location.pathname + window.location.search);
+    const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
     window.location.replace(`/login.html?redirect=${target}`);
     return false;
   }
@@ -28,10 +28,12 @@ async function requireAuth() {
 }
 
 // ---------------- Views & Nav ----------------
-function showView(view) {
+async function showView(view) {
   document.getElementById('view-sops').style.display = view === 'sops' ? '' : 'none';
   document.getElementById('view-create').style.display = view === 'create' ? '' : 'none';
-  if (view === 'create') ensureQuill();
+  if (view === 'create') {
+    await ensureQuill(); // lazy-load Quill before initializing editor
+  }
 }
 
 function wireNav() {
@@ -42,10 +44,11 @@ function wireNav() {
       const view = a.getAttribute('data-view');
       if (!(await requireAuth())) return;
       document.querySelectorAll('.nav-link').forEach((x) => x.classList.toggle('active', x === a));
-      showView(view);
+      await showView(view);
       if (view === 'sops') reloadSops();
     });
   });
+  // default view
   showView('sops');
 }
 
@@ -71,6 +74,9 @@ function setTagFilter(value) { document.getElementById('filter-tags').value = va
 function applyFilters() { return reloadSops(); }
 
 // ---------------- Tiles ----------------
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 function tileHtml(s) {
   const id = String(s.id);
   const updated = new Date(s.updated_at).toLocaleString();
@@ -80,7 +86,7 @@ function tileHtml(s) {
     `<button type="button" class="chip" data-filter-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
   ).join('');
 
-  // Use hash to carry ID reliably across any static server rewrites
+  // HASH-ONLY routing
   const link = `/sop.html#${encodeURIComponent(id)}`;
 
   return `
@@ -111,7 +117,7 @@ async function reloadSops() {
   const res = await fetch(url, { credentials: 'include' });
   if (!res.ok) {
     if (res.status === 401) {
-      const target = encodeURIComponent(window.location.pathname + window.location.search);
+      const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
       window.location.replace(`/login.html?redirect=${target}`);
       return;
     }
@@ -124,11 +130,10 @@ async function reloadSops() {
   if (tileGrid) {
     tileGrid.innerHTML = items.map(tileHtml).join('') || '<p class="muted">No SOPs yet.</p>';
 
-    // Single stable handler
     tileGrid.onclick = async (e) => {
       const target = e.target;
 
-      // Let anchors navigate normally (ID in hash)
+      // Let anchors navigate normally (hash link)
       const anchor = target.closest?.('a.tile-link');
       if (anchor) return;
 
@@ -151,16 +156,34 @@ async function reloadSops() {
   }
 }
 
-function escapeHtml(s) {
-  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
 // ---------------- Create Page (Quill) ----------------
 let quill = null;
-function ensureQuill() {
+let quillLoadingPromise = null;
+
+function loadQuillAssets() {
+  if (quillLoadingPromise) return quillLoadingPromise;
+  quillLoadingPromise = new Promise((resolve, reject) => {
+    if (window.Quill) return resolve();
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Quill.js'));
+    document.head.appendChild(script);
+  });
+  return quillLoadingPromise;
+}
+
+async function ensureQuill() {
   if (quill) return;
+  await loadQuillAssets();
+  if (!window.Quill) {
+    alert('Quill failed to load. Check your network and CSP settings.');
+    return;
+  }
   const editorEl = document.getElementById('editor');
   if (!editorEl) return;
+
   quill = new window.Quill('#editor', {
     theme: 'snow',
     placeholder: 'Write the SOP content here...',
@@ -208,7 +231,7 @@ async function saveSop() {
   });
   if (!res.ok) {
     if (res.status === 401) {
-      const target = encodeURIComponent(window.location.pathname + window.location.search);
+      const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
       window.location.replace(`/login.html?redirect=${target}`);
       return;
     }
