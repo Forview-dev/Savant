@@ -23,29 +23,50 @@ function parseNumber(value, fallback) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+const PROTOCOL_REGEX = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//;
+
+function normalizeOriginCandidate(raw) {
+  const value = String(raw).trim();
+  if (!value) return null;
+
+  if (value.includes('*')) {
+    return value;
+  }
+
+  const attempts = [value];
+  if (!PROTOCOL_REGEX.test(value)) {
+    // Assume https for bare domains (e.g., example.com) and fall back to http for
+    // local dev conveniences like localhost:5173.
+    attempts.push(`https://${value}`);
+    attempts.push(`http://${value}`);
+  }
+
+  for (const attempt of attempts) {
+    try {
+      const url = new URL(attempt);
+      if (!/^https?:$/.test(url.protocol)) {
+        continue;
+      }
+      return url.origin;
+    } catch (err) {
+      // Try the next attempt; log later if all attempts fail.
+    }
+  }
+
+  console.warn(
+    `Skipping invalid origin "${value}". Provide a full URL (e.g. https://example.com) ` +
+      'or a wildcard such as https://*.example.com.'
+  );
+  return null;
+}
+
 function parseOriginList(input, fallback) {
   const values = [];
   const push = (candidate) => {
     if (candidate === undefined || candidate === null) return;
-    const raw = String(candidate).trim();
-    if (!raw) return;
-
-    // Allow wildcard patterns such as https://*.pages.dev
-    if (raw.includes('*')) {
-      values.push(raw);
-      return;
-    }
-
-    try {
-      const url = new URL(raw);
-      if (!/^https?:$/.test(url.protocol)) {
-        return;
-      }
-      values.push(url.origin);
-    } catch (err) {
-      // Ignore invalid URLs but surface a warning for easier debugging in prod.
-      console.warn(`Skipping invalid origin "${raw}":`, err?.message || err);
-    }
+    const normalized = normalizeOriginCandidate(candidate);
+    if (!normalized) return;
+    values.push(normalized);
   };
 
   if (Array.isArray(input)) {
