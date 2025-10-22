@@ -89,16 +89,65 @@ async function showView(view) {
 }
 
 function wireNav() {
-  const links = document.querySelectorAll('.nav-link[href="#"]');
+  const dropdown = document.getElementById('nav-dropdown');
+  const trigger = document.getElementById('nav-trigger');
+  const menu = document.getElementById('nav-menu');
+  const links = menu ? menu.querySelectorAll('.nav-link[href="#"]') : [];
+  const updateTriggerState = () => {
+    if (!trigger) return;
+    const active = menu?.querySelector('.nav-link.active');
+    trigger.classList.toggle('active', !!active);
+  };
+  const closeDropdown = () => {
+    if (!dropdown) return;
+    dropdown.classList.remove('open');
+    trigger?.setAttribute('aria-expanded', 'false');
+    menu?.setAttribute('aria-hidden', 'true');
+    updateTriggerState();
+  };
+
   links.forEach((a) => {
     a.addEventListener('click', async (e) => {
       e.preventDefault();
       const view = a.getAttribute('data-view');
       if (!(await requireAuth())) return;
       document.querySelectorAll('.nav-link').forEach((x) => x.classList.toggle('active', x === a));
+      updateTriggerState();
+      closeDropdown();
       await showView(view);
     });
   });
+
+  if (dropdown && trigger) {
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = dropdown.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', String(isOpen));
+      menu?.setAttribute('aria-hidden', String(!isOpen));
+      trigger.classList.toggle('active', isOpen || !!menu?.querySelector('.nav-link.active'));
+      if (isOpen) {
+        const active = menu?.querySelector('.nav-link.active');
+        (active || menu?.querySelector('.nav-link'))?.focus({ preventScroll: true });
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!dropdown.contains(event.target)) {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (dropdown.classList.contains('open')) {
+          closeDropdown();
+          trigger.focus({ preventScroll: true });
+        }
+      }
+    });
+
+    updateTriggerState();
+  }
 }
 
 // ---------------- Filters ----------------
@@ -408,7 +457,7 @@ async function saveSop() {
     return alert(`Save failed: ${data.error || res.status}`);
   }
   clearCreateForm();
-  document.querySelector('.nav .nav-link[data-view="sops"]')?.click();
+  document.querySelector('.nav-menu .nav-link[data-view="sops"]')?.click();
 }
 
 // ---------------- Init ----------------
