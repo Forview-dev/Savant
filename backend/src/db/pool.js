@@ -41,7 +41,11 @@ async function ensureIPv4(connectionString) {
       return rewriteHost(connectionString, lookupResult.address);
     }
   } catch (err) {
-    console.warn('Unable to resolve IPv4 address for database host:', err?.message || err);
+    if (err?.code === 'ENOTFOUND' || err?.code === 'EAI_AGAIN') {
+      console.info('No IPv4 DNS record for database host; using original hostname');
+    } else {
+      console.warn('Unable to resolve IPv4 address for database host:', err?.message || err);
+    }
   }
 
   return connectionString;
@@ -54,13 +58,27 @@ function preferIPv4Lookup(hostname, options, callback) {
     return dnsLookup(hostname, options, callback);
   }
 
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
+  let cb = callback;
+  let opts = options;
+
+  if (typeof opts === 'function') {
+    cb = opts;
+    opts = {};
   }
 
-  const opts = { ...options, family: 4 };
-  return dnsLookup(hostname, opts, callback);
+  const lookupOptions = { ...opts, family: 4 };
+
+  return dnsLookup(hostname, lookupOptions, (err, address, family) => {
+    if (!err) {
+      return cb?.(null, address, family);
+    }
+
+    if (err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN') {
+      return dnsLookup(hostname, opts, cb);
+    }
+
+    return cb?.(err, address, family);
+  });
 }
 
 export const pool = new Pool({
