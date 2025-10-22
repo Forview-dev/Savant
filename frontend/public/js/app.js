@@ -109,7 +109,8 @@ function wireNav() {
   links.forEach((a) => {
     a.addEventListener('click', async (e) => {
       e.preventDefault();
-      const view = a.getAttribute('data-view');
+      const view = link.getAttribute('data-view');
+      if (!view) return;
       if (!(await requireAuth())) return;
       document.querySelectorAll('.nav-link').forEach((x) => x.classList.toggle('active', x === a));
       updateTriggerState();
