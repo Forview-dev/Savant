@@ -1,8 +1,55 @@
+import dns from 'node:dns/promises';
+import net from 'node:net';
 import { Pool } from 'pg';
 import { env } from '../config/env.js';
 
+function rewriteHost(connectionString, host) {
+  try {
+    const url = new URL(connectionString);
+    url.hostname = host;
+    url.host = host + (url.port ? `:${url.port}` : '');
+    return url.toString();
+  } catch (err) {
+    console.warn('Failed to rewrite DATABASE_URL host:', err?.message || err);
+    return connectionString;
+  }
+}
+
+async function ensureIPv4(connectionString) {
+  if (!connectionString) return connectionString;
+
+  const manualOverride = env.DB_IPV4_HOST?.trim();
+  if (manualOverride) {
+    return rewriteHost(connectionString, manualOverride);
+  }
+
+  if (!env.DB_DISABLE_IPV6) {
+    return connectionString;
+  }
+
+  try {
+    const url = new URL(connectionString);
+    const hostname = url.hostname;
+    if (!hostname || hostname === 'localhost' || net.isIP(hostname) === 4) {
+      return connectionString;
+    }
+
+    const lookupResult = await dns.lookup(hostname, { family: 4 });
+    if (lookupResult?.family === 4 && lookupResult.address) {
+      console.info('Resolved database host to IPv4 address to avoid IPv6 connectivity issues');
+      return rewriteHost(connectionString, lookupResult.address);
+    }
+  } catch (err) {
+    console.warn('Unable to resolve IPv4 address for database host:', err?.message || err);
+  }
+
+  return connectionString;
+}
+
+const connectionString = await ensureIPv4(env.DATABASE_URL);
+
 export const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString,
   ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,
   max: 10,
   idleTimeoutMillis: 30_000,
