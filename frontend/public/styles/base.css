@@ -148,6 +148,49 @@ body>* {
     transform: scaleX(1);
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.create-sop-button {
+    background: linear-gradient(135deg, var(--accent), #6b7bff);
+    border: none;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+    box-shadow: 0 12px 22px rgba(81, 97, 255, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.create-sop-button:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 30px rgba(81, 97, 255, 0.32);
+}
+
+.create-sop-button:active {
+    transform: translateY(0);
+}
+
+.create-sop-button:focus-visible {
+    outline: 2px solid rgba(81, 97, 255, 0.4);
+    outline-offset: 4px;
+}
+
+.create-sop-button.active {
+    box-shadow: 0 0 0 3px rgba(81, 97, 255, 0.2);
+}
+
 .user-pill {
     padding: 10px 18px;
     border-radius: 999px;
