@@ -11,8 +11,10 @@ export default {
         env.SAVANT_API_BASE_URL,
       ].filter((value) => typeof value === 'string' && value.trim().length > 0);
 
-      const fallbackLocal = 'http://localhost:4000';
-      const apiBaseUrl = apiBaseCandidates[0] || fallbackLocal;
+      let apiBaseUrl = apiBaseCandidates[0];
+      if (!apiBaseUrl) {
+        apiBaseUrl = url.origin;
+      }
 
       const config = {
         apiBaseUrl,

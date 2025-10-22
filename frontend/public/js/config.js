@@ -27,6 +27,10 @@
     pushCandidate(meta.getAttribute('content'));
   }
 
+  if (window.location && window.location.protocol === 'https:') {
+    pushCandidate(window.location.origin);
+  }
+
   pushCandidate(fallbackLocal);
 
   const normalize = (urlLike) => {
