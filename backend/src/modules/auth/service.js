@@ -12,6 +12,15 @@ export async function requestMagicLink(email, req) {
   if (now - last < 30_000) throw new Error('Rate limited');
   lastRequestPerEmail.set(email, now);
 
+  const { rowCount } = await pool.query(
+    `SELECT 1 FROM users WHERE email = $1;`,
+    [email]
+  );
+  if (!rowCount) {
+    req.log.info({ email }, 'magic-link requested for unknown email');
+    return false;
+  }
+
   const token = nanoid(32);
   const expiresAt = new Date(now + 15 * 60 * 1000); // 15 min
 
@@ -39,14 +48,18 @@ export async function verifyMagicToken(token, req) {
     return null;
   }
 
-  // mark single-use
-  await pool.query(`UPDATE magic_tokens SET used_at=NOW() WHERE id=$1;`, [rec.id]);
-
-  // ensure user exists
-  await pool.query(
-    `INSERT INTO users (email) VALUES ($1) ON CONFLICT (email) DO NOTHING;`,
+  const { rowCount: userCount } = await pool.query(
+    `SELECT 1 FROM users WHERE email = $1;`,
     [rec.email]
   );
+  if (!userCount) {
+    await pool.query(`DELETE FROM magic_tokens WHERE id=$1;`, [rec.id]);
+    req.log.warn({ email: rec.email }, 'magic token without account');
+    return null;
+  }
+
+  // mark single-use
+  await pool.query(`UPDATE magic_tokens SET used_at=NOW() WHERE id=$1;`, [rec.id]);
 
   req.log.info({ email: rec.email }, 'magic token verified');
   return { email: rec.email };
