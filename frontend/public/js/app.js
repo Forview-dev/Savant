@@ -89,16 +89,41 @@ async function showView(view) {
 }
 
 function wireNav() {
-  const links = document.querySelectorAll('.nav-link[href="#"]');
-  links.forEach((a) => {
-    a.addEventListener('click', async (e) => {
+  const navLinks = document.querySelectorAll('.nav .nav-link[href="#"]');
+  const createButton = document.getElementById('create-sop-button');
+  const createView = createButton?.getAttribute('data-view') || 'create';
+
+  const setActive = (view) => {
+    navLinks.forEach((link) => {
+      const target = link.getAttribute('data-view');
+      link.classList.toggle('active', target === view);
+    });
+    if (createButton) {
+      createButton.classList.toggle('active', view === createView);
+    }
+  };
+
+  navLinks.forEach((link) => {
+    link.addEventListener('click', async (e) => {
       e.preventDefault();
-      const view = a.getAttribute('data-view');
+      const view = link.getAttribute('data-view');
+      if (!view) return;
       if (!(await requireAuth())) return;
-      document.querySelectorAll('.nav-link').forEach((x) => x.classList.toggle('active', x === a));
+      setActive(view);
       await showView(view);
     });
   });
+
+  if (createButton) {
+    createButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!(await requireAuth())) return;
+      setActive(createView);
+      await showView(createView);
+    });
+  }
+
+  setActive('sops');
 }
 
 // ---------------- Filters ----------------
