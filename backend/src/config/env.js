@@ -145,7 +145,7 @@ const APP_BASE_URL = normalizeBaseUrl(
 const PORT = parseNumber(process.env.PORT, 4000);
 const JWT_EXPIRES_SECONDS = parseNumber(
   process.env.JWT_EXPIRES,
-  60 * 60 * 24 * 30
+  2592000
 );
 const MAGIC_LINK_EXPIRY_MIN = parseNumber(process.env.MAGIC_LINK_EXPIRY_MIN, 15);
 const COOKIE_NAME = process.env.COOKIE_NAME || 'sid';
