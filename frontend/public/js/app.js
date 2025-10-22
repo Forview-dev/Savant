@@ -34,6 +34,51 @@ async function fetchMe() {
   }
 }
 
+async function logoutUser() {
+  const apiBase = getApiBaseUrl();
+  try {
+    const res = await fetch(`${apiBase}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      console.warn('Logout failed', res.status);
+    }
+  } catch (err) {
+    console.warn('Logout request failed', err);
+  } finally {
+    window.location.replace('/login.html');
+  }
+}
+
+function renderUserPill(user) {
+  const pill = document.getElementById('user-pill');
+  if (!pill) return;
+
+  const roleClass = `role-${(user.role || 'viewer').toLowerCase()}`;
+  const roleName = user.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : 'Viewer';
+
+  const emailSpan = document.createElement('span');
+  emailSpan.textContent = user.email || '';
+
+  const roleSpan = document.createElement('span');
+  roleSpan.className = `role ${roleClass}`;
+  roleSpan.textContent = `(${roleName})`;
+
+  const logoutButton = document.createElement('button');
+  logoutButton.type = 'button';
+  logoutButton.className = 'logout-button';
+  logoutButton.textContent = 'Log out';
+  logoutButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    logoutUser();
+  });
+
+  pill.replaceChildren(emailSpan, roleSpan, logoutButton);
+}
+
 // Redirect to /login.html if not authenticated
 async function requireAuth() {
   const { user } = await fetchMe();
@@ -46,17 +91,7 @@ async function requireAuth() {
   }
 
   // Update the header pill: email + colored role
-  const pill = document.getElementById('user-pill');
-  if (pill) {
-    const roleClass = `role-${(user.role || 'viewer').toLowerCase()}`;
-    const roleName = user.role
-      ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-      : 'Viewer';
-    pill.innerHTML = `
-      ${user.email}
-      <span class="role ${roleClass}">(${roleName})</span>
-    `;
-  }
+  renderUserPill(user);
   return true;
 }
 
@@ -433,7 +468,7 @@ async function saveSop() {
     return alert(`Save failed: ${data.error || res.status}`);
   }
   clearCreateForm();
-  document.querySelector('.nav .nav-link[data-view="sops"]')?.click();
+  document.querySelector('.nav-menu .nav-link[data-view="sops"]')?.click();
 }
 
 // ---------------- Init ----------------
