@@ -193,17 +193,44 @@ async function reloadSops() {
 let quill = null;
 let quillLoadingPromise = null;
 
+function ensureStylesheet(href, attrName) {
+  return new Promise((resolve, reject) => {
+    let link = document.querySelector(`link[${attrName}="${href}"]`);
+    if (link) {
+      if (link.sheet) return resolve();
+      link.addEventListener('load', () => resolve(), { once: true });
+      link.addEventListener('error', () => reject(new Error(`Failed to load stylesheet: ${href}`)), { once: true });
+      return;
+    }
+
+    link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.setAttribute(attrName, href);
+    link.addEventListener('load', () => resolve(), { once: true });
+    link.addEventListener('error', () => reject(new Error(`Failed to load stylesheet: ${href}`)), { once: true });
+    document.head.appendChild(link);
+  });
+}
+
 function loadQuillAssets() {
   if (quillLoadingPromise) return quillLoadingPromise;
-  quillLoadingPromise = new Promise((resolve, reject) => {
-    if (window.Quill) return resolve();
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Quill.js'));
-    document.head.appendChild(script);
-  });
+  const cssHref = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css';
+  const jsSrc = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';
+
+  quillLoadingPromise = Promise.all([
+    ensureStylesheet(cssHref, 'data-quill-css'),
+    new Promise((resolve, reject) => {
+      if (window.Quill) return resolve();
+      const script = document.createElement('script');
+      script.src = jsSrc;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Quill.js'));
+      document.head.appendChild(script);
+    }),
+  ]);
+
   return quillLoadingPromise;
 }
 
