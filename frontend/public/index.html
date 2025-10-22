@@ -15,6 +15,7 @@
             <h1>Savant!</h1>
             <nav class="nav">
                 <a href="#" class="nav-link active" data-view="sops">Dashboard</a>
+                <a href="#" class="nav-link" data-view="client-sops">Client SOPs</a>
                 <a href="#" class="nav-link" data-view="create">Create SOP</a>
             </nav>
             <div id="user-pill" class="user-pill">Not signed in</div>
@@ -50,6 +51,30 @@
             </div>
         </section>
 
+        <!-- Client SOPs View -->
+        <section id="view-client-sops" style="display:none;">
+            <h2>Client SOPs</h2>
+            <div class="card">
+                <div class="row" style="flex-wrap: wrap; gap: 16px;">
+                    <div style="display:flex; flex-direction:column;">
+                        <label for="client-filter-q" class="muted">Search</label>
+                        <input id="client-filter-q" type="text" placeholder="Search client SOPs..." />
+                    </div>
+                    <div style="display:flex; flex-direction:column;">
+                        <label for="client-filter-name" class="muted">Client Name</label>
+                        <input id="client-filter-name" type="text" placeholder="Client name..." />
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button id="client-apply-filters" onclick="applyClientFilters()">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="client-sop-tiles" class="tile-grid" style="margin-top:20px;">
+                <!-- Client SOP tiles rendered dynamically -->
+            </div>
+        </section>
+
         <!-- Create SOP View -->
         <section id="view-create" style="display:none;">
             <h2>Create New SOP</h2>
@@ -72,6 +97,17 @@
                 <div style="margin-top:20px;">
                     <label for="editor" class="muted">Content</label>
                     <div id="editor" class="quill" style="margin-top:8px;"></div>
+                </div>
+
+                <div class="row" style="margin-top:20px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <input id="sop-is-client" type="checkbox" />
+                        <label for="sop-is-client" class="muted" style="cursor:pointer;">Client-specific SOP</label>
+                    </div>
+                    <div id="client-name-wrapper" style="display:none; flex:1; flex-direction:column;">
+                        <label for="sop-client-name" class="muted">Client Name</label>
+                        <input id="sop-client-name" type="text" placeholder="Client name" />
+                    </div>
                 </div>
 
                 <div class="row" style="margin-top:20px;">

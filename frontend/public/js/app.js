@@ -62,10 +62,29 @@ async function requireAuth() {
 
 // ---------------- Views & Nav ----------------
 async function showView(view) {
-  document.getElementById('view-sops').style.display = view === 'sops' ? '' : 'none';
-  document.getElementById('view-create').style.display = view === 'create' ? '' : 'none';
+  const sections = {
+    sops: document.getElementById('view-sops'),
+    'client-sops': document.getElementById('view-client-sops'),
+    create: document.getElementById('view-create'),
+  };
+
+  Object.entries(sections).forEach(([key, el]) => {
+    if (!el) return;
+    el.style.display = view === key ? '' : 'none';
+  });
+
   if (view === 'create') {
     await ensureQuill(); // lazy-load Quill before initializing editor
+    return;
+  }
+
+  if (view === 'sops') {
+    await reloadSops();
+    return;
+  }
+
+  if (view === 'client-sops') {
+    await reloadClientSops();
   }
 }
 
@@ -78,11 +97,8 @@ function wireNav() {
       if (!(await requireAuth())) return;
       document.querySelectorAll('.nav-link').forEach((x) => x.classList.toggle('active', x === a));
       await showView(view);
-      if (view === 'sops') reloadSops();
     });
   });
-  // default view
-  showView('sops');
 }
 
 // ---------------- Filters ----------------
@@ -97,14 +113,32 @@ function currentFilters() {
 }
 function buildQuery(params) {
   const qs = new URLSearchParams();
-  if (params.q) qs.set('q', params.q);
-  if (params.category) qs.set('category', params.category);
-  if (params.tags && params.tags.length) qs.set('tags', params.tags.join(','));
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (Array.isArray(value)) {
+      const trimmed = value
+        .map((v) => (typeof v === 'string' ? v.trim() : v))
+        .filter((v) => v !== '' && v !== null && v !== undefined);
+      if (!trimmed.length) return;
+      qs.set(key, trimmed.join(','));
+      return;
+    }
+    const val = typeof value === 'string' ? value.trim() : value;
+    if (val === '') return;
+    qs.set(key, val);
+  });
   return qs.toString();
 }
 function setCategoryFilter(value) { document.getElementById('filter-category').value = value; }
 function setTagFilter(value) { document.getElementById('filter-tags').value = value; }
 function applyFilters() { return reloadSops(); }
+
+function currentClientFilters() {
+  const q = document.getElementById('client-filter-q')?.value.trim() || '';
+  const clientName = document.getElementById('client-filter-name')?.value.trim() || '';
+  return { q, client_name: clientName };
+}
+function applyClientFilters() { return reloadClientSops(); }
 
 // ---------------- Tiles ----------------
 function escapeHtml(s) {
@@ -118,6 +152,9 @@ function tileHtml(s) {
   const tags = (s.tags || []).map((t) =>
     `<button type="button" class="chip" data-filter-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
   ).join('');
+  const clientBadge = s.is_client
+    ? `<div class="tile-client">Client: ${escapeHtml(s.client_name || 'Unassigned')}</div>`
+    : '';
 
   // HASH-ONLY routing
   const link = `/sop.html#${encodeURIComponent(id)}`;
@@ -130,6 +167,7 @@ function tileHtml(s) {
         </a>
       </div>
       <div class="tile-meta">Updated ${updated}</div>
+      ${clientBadge}
       <div class="tile-tags">
         ${catChip}
         ${tags}
@@ -138,12 +176,61 @@ function tileHtml(s) {
   `;
 }
 
+function attachTileInteractions(tileGrid, { enableCategoryFilters = true, enableTagFilters = true } = {}) {
+  if (!tileGrid) return;
+  tileGrid.onclick = async (e) => {
+    const target = e.target;
+
+    const anchor = target.closest?.('a.tile-link');
+    if (anchor) return;
+
+    const categoryEl = target.closest?.('[data-filter-category]');
+    if (categoryEl) {
+      if (!enableCategoryFilters) {
+        e.preventDefault?.();
+        return;
+      }
+      const catVal = categoryEl.getAttribute('data-filter-category');
+      if (catVal) {
+        e.preventDefault?.();
+        setCategoryFilter(catVal);
+        await applyFilters();
+      }
+      return;
+    }
+
+    const tagEl = target.closest?.('[data-filter-tag]');
+    if (tagEl) {
+      if (!enableTagFilters) {
+        e.preventDefault?.();
+        return;
+      }
+      const tagVal = tagEl.getAttribute('data-filter-tag');
+      if (tagVal) {
+        e.preventDefault?.();
+        setTagFilter(tagVal);
+        await applyFilters();
+      }
+      return;
+    }
+
+    const tile = target.closest?.('.tile');
+    if (tile) {
+      const id = tile.getAttribute('data-id');
+      if (!id) return console.warn('Tile has no data-id');
+      window.location.href = `/sop.html#${encodeURIComponent(id)}`;
+    }
+  };
+}
+
 async function reloadSops() {
   const apiBase = getApiBaseUrl();
   const tileGrid = document.getElementById('sop-tiles');
   if (tileGrid) tileGrid.innerHTML = 'Loading...';
 
   const filters = currentFilters();
+  filters.client = '0';
+
   const qs = buildQuery(filters);
   const url = `${apiBase}/sops${qs ? `?${qs}` : ''}`;
 
@@ -162,30 +249,37 @@ async function reloadSops() {
 
   if (tileGrid) {
     tileGrid.innerHTML = items.map(tileHtml).join('') || '<p class="muted">No SOPs yet.</p>';
+    attachTileInteractions(tileGrid, { enableCategoryFilters: true, enableTagFilters: true });
+  }
+}
 
-    tileGrid.onclick = async (e) => {
-      const target = e.target;
+async function reloadClientSops() {
+  const apiBase = getApiBaseUrl();
+  const tileGrid = document.getElementById('client-sop-tiles');
+  if (tileGrid) tileGrid.innerHTML = 'Loading...';
 
-      // Let anchors navigate normally (hash link)
-      const anchor = target.closest?.('a.tile-link');
-      if (anchor) return;
+  const filters = currentClientFilters();
+  filters.client = '1';
 
-      // Category chip → filter
-      const catVal = target.getAttribute?.('data-filter-category');
-      if (catVal) { e.preventDefault(); setCategoryFilter(catVal); await applyFilters(); return; }
+  const qs = buildQuery(filters);
+  const url = `${apiBase}/sops${qs ? `?${qs}` : ''}`;
 
-      // Tag chip → filter
-      const tagVal = target.getAttribute?.('data-filter-tag');
-      if (tagVal) { e.preventDefault(); setTagFilter(tagVal); await applyFilters(); return; }
+  const res = await fetch(url, { credentials: 'include' });
+  if (!res.ok) {
+    if (res.status === 401) {
+      const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+      window.location.replace(`/login.html?redirect=${target}`);
+      return;
+    }
+    if (tileGrid) tileGrid.innerHTML = 'Failed to load client SOPs.';
+    return;
+  }
+  const data = await res.json();
+  const items = data.items || [];
 
-      // Fallback: click anywhere on tile navigates
-      const tile = target.closest?.('.tile');
-      if (tile) {
-        const id = tile.getAttribute('data-id');
-        if (!id) return console.warn('Tile has no data-id');
-        window.location.href = `/sop.html#${encodeURIComponent(id)}`;
-      }
-    };
+  if (tileGrid) {
+    tileGrid.innerHTML = items.map(tileHtml).join('') || '<p class="muted">No client SOPs yet.</p>';
+    attachTileInteractions(tileGrid, { enableCategoryFilters: false, enableTagFilters: false });
   }
 }
 
@@ -270,19 +364,34 @@ function readCreateForm() {
   const delta = quill.getContents();
   const html = document.querySelector('#editor .ql-editor').innerHTML;
   const message = document.getElementById('sop-message').value.trim();
-  return { title, category, tags, delta, html, message };
+  const isClient = !!document.getElementById('sop-is-client')?.checked;
+  const clientNameRaw = document.getElementById('sop-client-name')?.value.trim() || '';
+  const clientName = isClient ? clientNameRaw : null;
+  return { title, category, tags, delta, html, message, is_client: isClient, client_name: clientName };
 }
 function clearCreateForm() {
   document.getElementById('sop-title').value = '';
   document.getElementById('sop-category').value = '';
   document.getElementById('sop-tags').value = '';
   document.getElementById('sop-message').value = '';
-  quill.setContents([]);
+  const clientToggle = document.getElementById('sop-is-client');
+  const clientName = document.getElementById('sop-client-name');
+  if (clientToggle) clientToggle.checked = false;
+  if (clientName) clientName.value = '';
+  syncClientFieldsVisibility();
+  if (quill) quill.setContents([]);
+}
+function syncClientFieldsVisibility() {
+  const wrapper = document.getElementById('client-name-wrapper');
+  const toggle = document.getElementById('sop-is-client');
+  if (!wrapper || !toggle) return;
+  wrapper.style.display = toggle.checked ? 'flex' : 'none';
 }
 async function saveSop() {
   const apiBase = getApiBaseUrl();
   const payload = readCreateForm();
   if (!payload.title) return alert('Title is required.');
+  if (payload.is_client && !payload.client_name) return alert('Client name is required for client-specific SOPs.');
   const res = await fetch(`${apiBase}/sops`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -306,6 +415,11 @@ async function saveSop() {
 async function init() {
   if (!(await requireAuth())) return;
   wireNav();
-  await reloadSops();
+  const clientToggle = document.getElementById('sop-is-client');
+  if (clientToggle) {
+    clientToggle.addEventListener('change', syncClientFieldsVisibility);
+    syncClientFieldsVisibility();
+  }
+  await showView('sops');
 }
 init();

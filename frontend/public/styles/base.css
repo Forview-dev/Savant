@@ -445,6 +445,13 @@ button.danger:hover {
     margin-top: 8px;
 }
 
+.tile .tile-client {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-2);
+}
+
 .tile .tile-tags {
     margin-top: 18px;
     display: flex;
