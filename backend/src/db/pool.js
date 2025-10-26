@@ -29,39 +29,50 @@ function normaliseCertificate(value) {
 
 function rewriteHost(connectionString, host) {
   try {
-    const url = new URL(connectionString);
-    url.hostname = host;
-    url.host = host + (url.port ? `:${url.port}` : '');
-    return url.toString();
+    return new URL(connectionString);
   } catch (err) {
-    console.warn('Failed to rewrite DATABASE_URL host:', err?.message || err);
-    return connectionString;
+    console.warn('Failed to parse DATABASE_URL:', err?.message || err);
+    return undefined;
   }
 }
 
-async function ensureIPv4(connectionString) {
-  if (!connectionString) return connectionString;
+function normaliseCertificate(value) {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  const material = trimmed.includes('-----BEGIN')
+    ? trimmed.replace(/\\n/g, '\n')
+    : Buffer.from(trimmed, 'base64').toString('utf8');
+
+  return material;
+}
+
+async function resolveIPv4Host(connectionString) {
+  if (!connectionString) return undefined;
 
   const manualOverride = env.DB_IPV4_HOST?.trim();
   if (manualOverride) {
-    return rewriteHost(connectionString, manualOverride);
+    console.info('Using manual IPv4 database host override');
+    return { host: manualOverride, source: 'manual' };
   }
 
   if (!env.DB_DISABLE_IPV6) {
-    return connectionString;
+    return undefined;
   }
 
   try {
     const url = new URL(connectionString);
     const hostname = url.hostname;
     if (!hostname || hostname === 'localhost' || net.isIP(hostname) === 4) {
-      return connectionString;
+      return undefined;
     }
 
     const lookupResult = await dns.lookup(hostname, { family: 4 });
     if (lookupResult?.family === 4 && lookupResult.address) {
       console.info('Resolved database host to IPv4 address to avoid IPv6 connectivity issues');
-      return rewriteHost(connectionString, lookupResult.address);
+      return { host: lookupResult.address, source: 'dns' };
     }
   } catch (err) {
     if (err?.code === 'ENOTFOUND' || err?.code === 'EAI_AGAIN') {
@@ -71,7 +82,7 @@ async function ensureIPv4(connectionString) {
     }
   }
 
-  return connectionString;
+  return undefined;
 }
 
 const originalUrl = parseUrl(env.DATABASE_URL);

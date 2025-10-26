@@ -30,8 +30,14 @@ test('shared pool honors production SSL and IPv4 settings', async () => {
 
   assert.equal(
     message.connectionString,
-    'postgres://user:pass@203.0.113.42:5432/prod',
-    'pool should rewrite host to explicit IPv4 override'
+    'postgres://user:pass@db.example.com:5432/prod',
+    'pool should keep the original connection string when applying IPv4 overrides'
+  );
+
+  assert.equal(
+    message.host,
+    '203.0.113.42',
+    'pool should override the socket host when an explicit IPv4 override is supplied'
   );
 
   assert.deepEqual(
