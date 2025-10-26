@@ -177,18 +177,29 @@ function renderActions(id) {
   const bar = document.getElementById('sop-actions');
   if (!bar) return;
 
-  let buttons = `
-    <a href="/"><button class="ghost" id="back-dashboard">←</button></a>
-  `;
+  const buttons = [];
+
+  buttons.push(`
+    <a class="sop-action-link" href="/">
+      <button class="ghost" id="back-dashboard" title="Retour au tableau de bord">← Tableau</button>
+    </a>
+  `);
 
   if (canEdit()) {
-    buttons += `<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Éditer SOP</button></a>`;
-  }
-  if (canDelete()) {
-    buttons += `<button id="delete-sop-btn" class="danger" title="Delete SOP">Supprimer</button>`;
+    buttons.push(`
+      <a class="sop-action-link" href="/edit.html#${encodeURIComponent(id)}">
+        <button>Modifier le SOP</button>
+      </a>
+    `);
   }
 
-  bar.innerHTML = buttons;
+  if (canDelete()) {
+    buttons.push(`
+      <button id="delete-sop-btn" class="danger" title="Supprimer ce SOP">Supprimer</button>
+    `);
+  }
+
+  bar.innerHTML = `<div class="sop-actions__inner">${buttons.join('')}</div>`;
 
   // Wire delete modal
   document.getElementById('delete-sop-btn')?.addEventListener('click', () => {
@@ -209,30 +220,52 @@ async function renderSop() {
   const sop = await fetchSop(id);
   const versions = await fetchVersions(id);
 
-  const tags = (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('');
-  const vRows = versions.map(v => `
-    <div class="version-row">
-      <div>v${v.version_no} • ${new Date(v.created_at).toLocaleString()}</div>
-      <div>${escapeHtml(v.message || '')}</div>
-    </div>
-  `).join('') || '<p class="muted">No previous versions.</p>';
+  const lastUpdated = sop.updated_at ? new Date(sop.updated_at).toLocaleString() : 'Date inconnue';
+  const category = sop.category ? escapeHtml(sop.category) : 'Non catégorisé';
+
+  const tags = (sop.tags || []).length
+    ? (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('')
+    : '<span class="badge badge-muted">Aucun tag</span>';
+
+  const vRows = versions.length
+    ? versions.map(v => `
+        <li class="timeline-item">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">Version ${escapeHtml(`v${v.version_no}`)}</div>
+            <div class="timeline-meta">${new Date(v.created_at).toLocaleString()}</div>
+            ${v.message ? `<p class="timeline-description">${escapeHtml(v.message)}</p>` : ''}
+          </div>
+        </li>
+      `).join('')
+    : '<li class="timeline-empty muted">Aucune version précédente.</li>';
 
   container.innerHTML = `
-    <div class="card">
-      <h2>${escapeHtml(sop.title)}</h2>
-      <p class="muted">
-        Catégorie: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
-        Mis à jour: ${new Date(sop.updated_at).toLocaleString()}
-      </p>
-      <div>${tags}</div>
-    </div>
+    <section class="card sop-hero">
+      <div class="sop-hero__eyebrow">Procédure opérationnelle standard</div>
+      <h1 class="sop-hero__title">${escapeHtml(sop.title)}</h1>
+      <div class="sop-hero__meta">
+        <span class="sop-meta-chip"><span class="label">Catégorie</span>${category}</span>
+        <span class="sop-meta-chip"><span class="label">Dernière mise à jour</span>${lastUpdated}</span>
+      </div>
+      <div class="sop-hero__tags">${tags}</div>
+    </section>
 
-    <div class="card"><div class="tile-body">${sop.current_html}</div></div>
+    <section class="card sop-body">
+      <div class="section-heading">
+        <h2>Procédure détaillée</h2>
+        <p class="muted">Suivez attentivement chaque étape afin de garantir une exécution fiable.</p>
+      </div>
+      <div class="sop-content rich-content">${sop.current_html || '<p class="muted">Aucun contenu disponible.</p>'}</div>
+    </section>
 
-    <div class="card">
-      <h3>Notes de version:</h3>
-      <div class="versions">${vRows}</div>
-    </div>
+    <section class="card sop-versions">
+      <div class="section-heading">
+        <h2>Historique des versions</h2>
+        <p class="muted">Gardez une trace des améliorations clés apportées à ce SOP.</p>
+      </div>
+      <ol class="version-timeline">${vRows}</ol>
+    </section>
   `;
 }
 
