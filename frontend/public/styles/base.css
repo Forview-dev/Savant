@@ -209,12 +209,6 @@ body>* {
     transform: scaleX(1);
 }
 
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
-
 .nav-button {
     background: none;
     border: none;
@@ -265,12 +259,6 @@ body>* {
 .nav-button.active::after {
     background: var(--accent);
     transform: scaleX(1);
-}
-
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
 }
 
 .create-sop-button {
