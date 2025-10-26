@@ -4,6 +4,29 @@ import net from 'node:net';
 import { Pool } from 'pg';
 import { env } from '../config/env.js';
 
+function parseUrl(connectionString) {
+  if (!connectionString) return undefined;
+  try {
+    return new URL(connectionString);
+  } catch (err) {
+    console.warn('Failed to parse DATABASE_URL:', err?.message || err);
+    return undefined;
+  }
+}
+
+function normaliseCertificate(value) {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  const material = trimmed.includes('-----BEGIN')
+    ? trimmed.replace(/\\n/g, '\n')
+    : Buffer.from(trimmed, 'base64').toString('utf8');
+
+  return material;
+}
+
 function rewriteHost(connectionString, host) {
   try {
     const url = new URL(connectionString);
@@ -52,6 +75,43 @@ async function ensureIPv4(connectionString) {
 }
 
 const connectionString = await ensureIPv4(env.DATABASE_URL);
+const parsedUrl = parseUrl(connectionString);
+const sslMode = parsedUrl?.searchParams
+  ?.get('sslmode')
+  ?.toString()
+  .trim()
+  .toLowerCase();
+
+const sslModeRequires = sslMode
+  ? !['disable', 'allow', 'prefer'].includes(sslMode)
+  : false;
+const sslModeStrict = sslMode
+  ? ['verify-ca', 'verify-full'].includes(sslMode)
+  : false;
+
+const sslEnabled =
+  env.DB_SSL !== undefined
+    ? env.DB_SSL
+    : sslModeRequires || env.NODE_ENV === 'production';
+
+const explicitRejectUnauthorized = env.DB_SSL_REJECT_UNAUTHORIZED;
+
+const sslRejectUnauthorized =
+  explicitRejectUnauthorized !== undefined
+    ? explicitRejectUnauthorized
+    : sslModeStrict;
+
+const caCertificate = normaliseCertificate(env.DB_SSL_CA_CERT);
+
+const sslConfig = sslEnabled
+  ? {
+      rejectUnauthorized:
+        caCertificate && explicitRejectUnauthorized === undefined
+          ? true
+          : sslRejectUnauthorized ?? false,
+      ...(caCertificate ? { ca: caCertificate } : {}),
+    }
+  : false;
 
 function preferIPv4Lookup(hostname, options, callback) {
   if (!env.DB_DISABLE_IPV6) {
@@ -83,7 +143,7 @@ function preferIPv4Lookup(hostname, options, callback) {
 
 export const pool = new Pool({
   connectionString,
-  ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,
+  ssl: sslConfig,
   max: 10,
   idleTimeoutMillis: 30_000,
   lookup: preferIPv4Lookup,
