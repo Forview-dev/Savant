@@ -14,8 +14,8 @@ import { pool } from './db/pool.js';
 // pool check
 (async () => {
   try {
-    await pool.query('select 1');
-    console.log('[DB] OK host:', new URL(process.env.DATABASE_URL).host);
+    await assertDb();
+    console.log('[DB] connectivity OK; host:', new URL(process.env.DATABASE_URL).host);
   } catch (e) {
     console.error('[DB] FAIL', e);
   }
