@@ -9,7 +9,7 @@ import { authRouter } from './modules/auth/routes.js';
 import { requireAuthOptional, signSession } from './middleware/auth.js';
 import { sopsRouter } from './modules/sops/routes.js';
 import { query } from './lib/db.js';
-import { pool } from './db/pool.js';
+import { assertDb } from './db/pool.js';
 
 // pool check
 (async () => {
