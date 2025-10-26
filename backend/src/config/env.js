@@ -48,4 +48,10 @@ export const env = {
   DB_DISABLE_IPV6: boolOrDefault(process.env.DB_DISABLE_IPV6, true),
   DB_IPV4_HOST: process.env.DB_IPV4_HOST,
   MAGIC_LINK_MIN_INTERVAL_MS: process.env.MAGIC_LINK_MIN_INTERVAL_MS,
+
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT,
+  SMTP_USER: process.env.SMTP_USER, // Mailjet API Key (Public)
+  SMTP_PASS: process.env.SMTP_PASS, // Mailjet API Secret (Private)
+  MAIL_FROM: process.env.MAIL_FROM,
 };
