@@ -47,7 +47,7 @@ export async function sendLoginEmail(toEmail, verifyUrl, req) {
     <p>This link expires in 15 minutes.</p>
   `;
 
-  const transport = isProd ? smtpTransport : devTransport;
+  const transport = isProd ? devTransport : devTransport;
   const info = await transport.sendMail({
     from: 'no-reply@sop-app.local',
     to: toEmail,
