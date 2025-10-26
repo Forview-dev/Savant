@@ -554,7 +554,7 @@ button.danger:hover {
     border-radius: var(--radius-lg);
     border: 1px solid rgba(226, 232, 240, 0.6);
     box-shadow: var(--shadow-card);
-    padding: 28px 32px;
+    padding: 12px;
     color: var(--fg);
     line-height: 1.6;
     backdrop-filter: blur(6px);
