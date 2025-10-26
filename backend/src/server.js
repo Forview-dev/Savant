@@ -61,7 +61,6 @@ app.get('/me', requireAuthOptional, async (req, res) => {
     const email = req.user.email;
 
     // Always fetch the latest role from DB by email.
-    // Change `users` to `profiles` if that's your table.
     const { rows } = await query(
       `SELECT role
          FROM users

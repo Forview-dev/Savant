@@ -1,0 +1,35 @@
+# render.yaml
+services:
+  - type: web
+    name: savant-backend
+    rootDir: backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: FRONTEND_ORIGIN
+        value: https://savant-1ig.pages.dev
+      - key: APP_BASE_URL
+        value: https://savant-mifd.onrender.com
+      - key: DATABASE_URL # supply via Render dashboard (include ?sslmode=require)
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: DB_DISABLE_IPV6
+        value: "false"
+      - key: JWT_SECRET # supply via dashboard
+        sync: false
+      - key: SMTP_HOST # supply via dashboard
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER # supply via dashboard (if needed)
+        sync: false
+      - key: SMTP_PASS # supply via dashboard (if needed)
+        sync: false
