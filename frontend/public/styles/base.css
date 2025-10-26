@@ -559,7 +559,7 @@ button.danger:hover {
     line-height: 1.6;
     backdrop-filter: blur(6px);
     transition: transform var(--transition), box-shadow var(--transition);
-    
+    margin-bottom: 20px;
 }
 
 .card:hover {
