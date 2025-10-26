@@ -226,7 +226,7 @@ function tileHtml(s) {
           ${escapeHtml(s.title)}
         </a>
       </div>
-      <div class="tile-meta">Updated ${updated}</div>
+      <div class="tile-meta">Mis à jour: ${updated}</div>
       ${clientBadge}
       <div class="tile-tags">
         ${catChip}
