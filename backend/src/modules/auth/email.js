@@ -13,6 +13,7 @@ const devTransport = {
   },
 };
 
+const USE_SECURE = String(env.SMTP_PORT) === '465';
 const smtpTransport = nodemailer.createTransport({
   host: env.SMTP_HOST,                        // in-v3.mailjet.com
   port: Number(env.SMTP_PORT || 587),
