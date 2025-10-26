@@ -108,6 +108,16 @@ function escapeHtml(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function formatDate(value) {
+  if (!value) return 'Non disponible';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Non disponible';
+  return date.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+}
+
 async function fetchSop(id) {
   const apiBase = getApiBaseUrl();
   const res = await fetch(`${apiBase}/sops/${id}`, { credentials: 'include' });
@@ -177,18 +187,20 @@ function renderActions(id) {
   const bar = document.getElementById('sop-actions');
   if (!bar) return;
 
-  let buttons = `
-    <a href="/"><button class="ghost" id="back-dashboard">←</button></a>
-  `;
+  bar.classList.add('sop-action-bar');
+
+  const actions = [
+    `<a href="/" class="sop-action-button ghost sop-back-button">← Retour</a>`,
+  ];
 
   if (canEdit()) {
-    buttons += `<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Éditer SOP</button></a>`;
+    actions.push(`<a class="sop-action-button sop-edit-button" href="/edit.html#${encodeURIComponent(id)}">Éditer le SOP</a>`);
   }
   if (canDelete()) {
-    buttons += `<button id="delete-sop-btn" class="danger" title="Delete SOP">Supprimer</button>`;
+    actions.push(`<button id="delete-sop-btn" type="button" class="sop-action-button danger sop-delete-button" title="Delete SOP">Supprimer</button>`);
   }
 
-  bar.innerHTML = buttons;
+  bar.innerHTML = actions.join('');
 
   // Wire delete modal
   document.getElementById('delete-sop-btn')?.addEventListener('click', () => {
@@ -209,30 +221,90 @@ async function renderSop() {
   const sop = await fetchSop(id);
   const versions = await fetchVersions(id);
 
-  const tags = (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('');
-  const vRows = versions.map(v => `
-    <div class="version-row">
-      <div>v${v.version_no} • ${new Date(v.created_at).toLocaleString()}</div>
-      <div>${escapeHtml(v.message || '')}</div>
-    </div>
-  `).join('') || '<p class="muted">No previous versions.</p>';
+  const category = sop.category || 'Non classé';
+  const typeLabel = sop.is_client ? 'SOP client' : 'SOP interne';
+  const updatedText = formatDate(sop.updated_at);
+
+  const heroMetaParts = [
+    `Catégorie : <strong>${escapeHtml(category)}</strong>`,
+    `Mis à jour : ${escapeHtml(updatedText)}`,
+  ];
+  if (sop.client_name) {
+    heroMetaParts.push(`Client : <strong>${escapeHtml(sop.client_name)}</strong>`);
+  }
+
+  const tagsList = (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('');
+  const tagsHtml = tagsList ? `<div class="sop-tags">${tagsList}</div>` : '';
+
+  const metadataItems = [
+    { label: 'Type', value: typeLabel },
+    { label: 'Catégorie', value: category },
+    { label: 'Dernière mise à jour', value: updatedText },
+  ];
+  if (sop.client_name) {
+    metadataItems.push({ label: 'Client', value: sop.client_name });
+  }
+
+  const metadataHtml = metadataItems
+    .map(item => `
+      <div class="sop-meta-item">
+        <span class="sop-meta-label">${escapeHtml(item.label)}</span>
+        <span class="sop-meta-value">${escapeHtml(item.value)}</span>
+      </div>
+    `)
+    .join('');
+
+  const timelineItems = versions
+    .map((v, index) => {
+      const versionLabel = typeof v.version_no !== 'undefined' ? String(v.version_no) : String(index + 1);
+      const timestamp = formatDate(v.created_at);
+      const note = escapeHtml(v.message || 'Aucune note pour cette version.');
+      return `
+        <div class="sop-timeline-item">
+          <div class="sop-timeline-dot"></div>
+          <div class="sop-timeline-content">
+            <div class="sop-timeline-heading">
+              <span class="sop-version-label">v${escapeHtml(versionLabel)}</span>
+              <span class="sop-version-date">${escapeHtml(timestamp)}</span>
+            </div>
+            <p>${note}</p>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  const timelineHtml = versions.length
+    ? `<div class="sop-timeline">${timelineItems}</div>`
+    : '<div class="sop-empty-state muted">Aucune version précédente.</div>';
 
   container.innerHTML = `
-    <div class="card">
-      <h2>${escapeHtml(sop.title)}</h2>
-      <p class="muted">
-        Catégorie: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
-        Mis à jour: ${new Date(sop.updated_at).toLocaleString()}
-      </p>
-      <div>${tags}</div>
+    <section class="sop-hero card">
+      <span class="sop-hero-badge">${escapeHtml(typeLabel)}</span>
+      <h1>${escapeHtml(sop.title)}</h1>
+      <p class="sop-hero-meta">${heroMetaParts.map(part => `<span>${part}</span>`).join('')}</p>
+      ${tagsHtml}
+    </section>
+
+    <div class="sop-layout">
+      <article class="sop-content card">
+        <div class="sop-content-header">
+          <h2>Processus détaillé</h2>
+          <p>Suivez chaque étape pour garantir une exécution sans faille.</p>
+        </div>
+        <div class="sop-content-body">${sop.current_html}</div>
+      </article>
+
+      <aside class="sop-sidebar card">
+        <h3>Infos clés</h3>
+        <div class="sop-meta-grid">${metadataHtml}</div>
+      </aside>
     </div>
 
-    <div class="card"><div class="tile-body">${sop.current_html}</div></div>
-
-    <div class="card">
-      <h3>Notes de version:</h3>
-      <div class="versions">${vRows}</div>
-    </div>
+    <section class="sop-versions card">
+      <h3>Historique des versions</h3>
+      ${timelineHtml}
+    </section>
   `;
 }
 
