@@ -37,7 +37,7 @@ export const env = {
   COOKIE_NAME: 'sid',
   COOKIE_DOMAIN: undefined, // set in prod if needed
   COOKIE_SECURE: process.env.NODE_ENV === 'production',
-  COOKIE_SAMESITE: 'lax',
+  COOKIE_SAMESITE: 'none',
 
   DATABASE_URL: required('DATABASE_URL'),
   DB_SSL: parseBoolean(process.env.DB_SSL),
