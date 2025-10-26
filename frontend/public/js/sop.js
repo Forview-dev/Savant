@@ -178,14 +178,27 @@ function renderActions(id) {
   if (!bar) return;
 
   let buttons = `
-    <a href="/"><button class="ghost" id="back-dashboard">←</button></a>
+    <a href="/" class="sop-action sop-action--ghost">
+      <span aria-hidden="true">←</span>
+      <span>Tableau de bord</span>
+    </a>
   `;
 
   if (canEdit()) {
-    buttons += `<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Éditer SOP</button></a>`;
+    buttons += `
+      <a class="sop-action sop-action--primary" href="/edit.html#${encodeURIComponent(id)}">
+        <span aria-hidden="true">✎</span>
+        <span>Éditer</span>
+      </a>
+    `;
   }
   if (canDelete()) {
-    buttons += `<button id="delete-sop-btn" class="danger" title="Delete SOP">Supprimer</button>`;
+    buttons += `
+      <button id="delete-sop-btn" class="sop-action sop-action--danger" type="button" title="Supprimer ce SOP">
+        <span aria-hidden="true">🗑</span>
+        <span>Supprimer</span>
+      </button>
+    `;
   }
 
   bar.innerHTML = buttons;
@@ -199,41 +212,85 @@ function renderActions(id) {
 
 async function renderSop() {
   const container = document.getElementById('sop-detail');
+  const titleEl = document.getElementById('sop-title');
+  const categoryEl = document.getElementById('sop-category');
+  const metaEl = document.getElementById('sop-meta');
+  const tagsEl = document.getElementById('sop-tags');
   const id = getSopIdFromHash();
+  if (!container || !titleEl || !categoryEl || !metaEl || !tagsEl) return;
+
   if (!id) {
-    container.innerHTML = '<p class="muted">No SOP ID provided. Use sop.html#&lt;id&gt;.</p>';
+    titleEl.textContent = 'SOP introuvable';
+    categoryEl.textContent = 'Catégorie • —';
+    metaEl.innerHTML = '';
+    tagsEl.innerHTML = '';
+    container.innerHTML = `
+      <article class="sop-content card">
+        <p class="muted">No SOP ID provided. Utilisez sop.html#&lt;id&gt;.</p>
+      </article>
+    `;
     return;
   }
 
   renderActions(id);
   const sop = await fetchSop(id);
   const versions = await fetchVersions(id);
+  const updatedAt = sop.updated_at ? new Date(sop.updated_at).toLocaleString() : '—';
+  const metaItems = [
+    `<div class="sop-meta-item"><span>Mis à jour</span><span>${escapeHtml(updatedAt)}</span></div>`,
+    `<div class="sop-meta-item"><span>Identifiant</span><span>#${escapeHtml(sop.id || id)}</span></div>`,
+    `<div class="sop-meta-item"><span>Type</span><span>${sop.is_client ? 'Client' : 'Interne'}</span></div>`,
+  ];
+  if (sop.client_name) {
+    metaItems.push(`<div class="sop-meta-item"><span>Client</span><span>${escapeHtml(sop.client_name)}</span></div>`);
+  }
 
-  const tags = (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('');
-  const vRows = versions.map(v => `
-    <div class="version-row">
-      <div>v${v.version_no} • ${new Date(v.created_at).toLocaleString()}</div>
-      <div>${escapeHtml(v.message || '')}</div>
-    </div>
-  `).join('') || '<p class="muted">No previous versions.</p>';
+  titleEl.textContent = sop.title || 'Sans titre';
+  categoryEl.textContent = `Catégorie • ${sop.category || 'Non classé'}`;
+  metaEl.innerHTML = metaItems.join('');
+
+  const tagItems = (sop.tags || [])
+    .filter(Boolean)
+    .map(t => `<span class="badge">${escapeHtml(t)}</span>`);
+  tagsEl.innerHTML = tagItems.length
+    ? tagItems.join('')
+    : '<span class="badge is-empty">Aucun tag</span>';
+
+  const timeline = versions.length
+    ? versions.map(v => {
+        const createdAt = v.created_at ? new Date(v.created_at).toLocaleString() : '—';
+        const message = v.message
+          ? escapeHtml(v.message)
+          : '<span class="muted">Aucune note</span>';
+        return `
+          <div class="sop-timeline__item">
+            <span class="sop-timeline__marker" aria-hidden="true"></span>
+            <span class="sop-timeline__badge">v${escapeHtml(String(v.version_no))}</span>
+            <div class="sop-timeline__meta">${escapeHtml(createdAt)}</div>
+            <div class="sop-timeline__message">${message}</div>
+          </div>
+        `;
+      }).join('')
+    : '<p class="sop-timeline__empty">Pas encore de versions enregistrées.</p>';
+
+  const currentHtml = sop.current_html && sop.current_html.trim()
+    ? sop.current_html
+    : '<p class="muted">Ce SOP ne contient pas encore de contenu.</p>';
 
   container.innerHTML = `
-    <div class="card">
-      <h2>${escapeHtml(sop.title)}</h2>
-      <p class="muted">
-        Catégorie: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
-        Mis à jour: ${new Date(sop.updated_at).toLocaleString()}
-      </p>
-      <div>${tags}</div>
-    </div>
-
-    <div class="card"><div class="tile-body">${sop.current_html}</div></div>
-
-    <div class="card">
-      <h3>Notes de version:</h3>
-      <div class="versions">${vRows}</div>
-    </div>
+    <article class="sop-content card">
+      <div class="sop-content__header">
+        <span class="sop-content__eyebrow">Procédure détaillée</span>
+      </div>
+      <article class="sop-richtext">${currentHtml}</article>
+    </article>
+    <aside class="sop-sidebar card">
+      <h3>Historique des versions</h3>
+      <div class="sop-timeline">${timeline}</div>
+    </aside>
   `;
+
+  document.title = `Savant! — ${sop.title || 'SOP'}`;
 }
 
 async function init() {
