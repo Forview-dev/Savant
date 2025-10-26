@@ -14,20 +14,20 @@
     <header class="site-header">
         <div class="container header-inner">
             <h1><a href="/" style="text-decoration:none; color:inherit;">Savant! <em><small>for ttom</small></em></a></h1>
-            <div id="user-pill" class="user-pill">Not signed in</div>
+            <div id="user-pill" class="user-pill">Pas connecté</div>
         </div>
     </header>
 
     <main class="container">
         <div class="card">
-            <h2>Create New SOP</h2>
+            <h2>Créer un nouveau SOP</h2>
             <div class="row" style="flex-wrap: wrap; gap: 16px;">
                 <div style="display:flex; flex-direction:column;">
-                    <label for="sop-title" class="muted">Title</label>
+                    <label for="sop-title" class="muted">Titre</label>
                     <input id="sop-title" type="text" placeholder="SOP Title" />
                 </div>
                 <div style="display:flex; flex-direction:column;">
-                    <label for="sop-category" class="muted">Category</label>
+                    <label for="sop-category" class="muted">Catégorie</label>
                     <input id="sop-category" type="text" placeholder="Category" />
                 </div>
                 <div style="display:flex; flex-direction:column;">
@@ -37,18 +37,18 @@
             </div>
 
             <div style="margin-top:20px;">
-                <label for="editor" class="muted">Content</label>
+                <label for="editor" class="muted">Contenu</label>
                 <div id="editor" class="quill" style="margin-top:8px;"></div>
             </div>
 
             <div class="row" style="margin-top:20px;">
                 <div style="display:flex; flex-direction:column; flex:1;">
-                    <label for="sop-message" class="muted">Version Message</label>
+                    <label for="sop-message" class="muted">Notes de version</label>
                     <input id="sop-message" type="text" placeholder="Describe this version..." />
                 </div>
                 <div style="display:flex; align-items:flex-end; gap:10px;">
-                    <button id="save-sop">Save</button>
-                    <button id="clear-editor" class="ghost">Clear</button>
+                    <button id="save-sop">Sauvegarder</button>
+                    <button id="clear-editor" class="ghost">Annuler</button>
                 </div>
             </div>
         </div>
