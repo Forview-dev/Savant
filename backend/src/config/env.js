@@ -22,20 +22,6 @@ function boolOrDefault(v, def = false) {
   return parsed === undefined ? def : parsed;
 }
 
-function optionalBool(v) {
-  if (v === undefined || v === null) return undefined;
-  const trimmed = v.toString().trim();
-  if (!trimmed) return undefined;
-  return toBool(trimmed, undefined);
-}
-
-function optionalBool(v) {
-  if (v === undefined || v === null) return undefined;
-  const trimmed = v.toString().trim();
-  if (!trimmed) return undefined;
-  return toBool(trimmed, undefined);
-}
-
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   LOG_LEVEL:

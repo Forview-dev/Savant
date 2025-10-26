@@ -27,52 +27,40 @@ function normaliseCertificate(value) {
   return material;
 }
 
-function rewriteHost(connectionString, host) {
-  try {
-    return new URL(connectionString);
-  } catch (err) {
-    console.warn('Failed to parse DATABASE_URL:', err?.message || err);
-    return undefined;
+async function ensureIPv4(connectionString, originalHostname) {
+  if (!connectionString) {
+    return {};
   }
-}
 
-function normaliseCertificate(value) {
-  if (!value) return undefined;
-
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-
-  const material = trimmed.includes('-----BEGIN')
-    ? trimmed.replace(/\\n/g, '\n')
-    : Buffer.from(trimmed, 'base64').toString('utf8');
-
-  return material;
-}
-
-async function resolveIPv4Host(connectionString) {
-  if (!connectionString) return undefined;
+  const resolvedOriginalHost =
+    originalHostname ?? parseUrl(connectionString)?.hostname ?? undefined;
 
   const manualOverride = env.DB_IPV4_HOST?.trim();
   if (manualOverride) {
     console.info('Using manual IPv4 database host override');
-    return { host: manualOverride, source: 'manual' };
+    return {
+      host: manualOverride,
+      servername: resolvedOriginalHost,
+    };
   }
 
   if (!env.DB_DISABLE_IPV6) {
-    return undefined;
+    return { servername: resolvedOriginalHost };
+  }
+
+  const hostname = resolvedOriginalHost;
+  if (!hostname || hostname === 'localhost' || net.isIP(hostname) === 4) {
+    return { servername: resolvedOriginalHost };
   }
 
   try {
-    const url = new URL(connectionString);
-    const hostname = url.hostname;
-    if (!hostname || hostname === 'localhost' || net.isIP(hostname) === 4) {
-      return undefined;
-    }
-
     const lookupResult = await dns.lookup(hostname, { family: 4 });
     if (lookupResult?.family === 4 && lookupResult.address) {
       console.info('Resolved database host to IPv4 address to avoid IPv6 connectivity issues');
-      return { host: lookupResult.address, source: 'dns' };
+      return {
+        host: lookupResult.address,
+        servername: hostname,
+      };
     }
   } catch (err) {
     if (err?.code === 'ENOTFOUND' || err?.code === 'EAI_AGAIN') {
@@ -82,14 +70,17 @@ async function resolveIPv4Host(connectionString) {
     }
   }
 
-  return undefined;
+  return { servername: resolvedOriginalHost };
 }
 
 const originalUrl = parseUrl(env.DATABASE_URL);
 const originalHostname = originalUrl?.hostname;
 
-const connectionString = await ensureIPv4(env.DATABASE_URL);
-const parsedUrl = parseUrl(connectionString);
+const { host: ipv4HostOverride, servername: servernameHint } = await ensureIPv4(
+  env.DATABASE_URL,
+  originalHostname,
+);
+const parsedUrl = parseUrl(env.DATABASE_URL);
 const sslMode = parsedUrl?.searchParams
   ?.get('sslmode')
   ?.toString()
@@ -117,11 +108,7 @@ const sslRejectUnauthorized =
 
 const caCertificate = normaliseCertificate(env.DB_SSL_CA_CERT);
 
-const effectiveHostname = parsedUrl?.hostname;
-const sslServername =
-  originalHostname && effectiveHostname && originalHostname !== effectiveHostname
-    ? originalHostname
-    : effectiveHostname ?? originalHostname;
+const sslServername = servernameHint ?? parsedUrl?.hostname ?? originalHostname;
 
 const sslConfig = sslEnabled
   ? {
@@ -163,7 +150,8 @@ function preferIPv4Lookup(hostname, options, callback) {
 }
 
 export const pool = new Pool({
-  connectionString,
+  connectionString: env.DATABASE_URL,
+  ...(ipv4HostOverride ? { host: ipv4HostOverride } : {}),
   ssl: sslConfig,
   max: 10,
   idleTimeoutMillis: 30_000,
