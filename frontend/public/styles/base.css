@@ -136,7 +136,7 @@ body>* {
 
 .nav-dropdown .nav-menu {
     position: absolute;
-    top: calc(100% + 14px);
+    top: calc(100%  14px);
     right: 0;
     background: rgba(255, 255, 255, 0.97);
     border-radius: var(--radius);
@@ -161,8 +161,6 @@ body>* {
 .nav-menu .nav-link::after {
     display: none;
 }
-
-
 
 .nav-link {
     position: relative;
@@ -550,6 +548,25 @@ button.danger:hover {
 }
 
 /* Tiles */
+
+.card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    box-shadow: var(--shadow-card);
+    padding: 28px 32px;
+    color: var(--fg);
+    line-height: 1.6;
+    backdrop-filter: blur(6px);
+    transition: transform var(--transition), box-shadow var(--transition);
+    
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);    
+}
+
 .tile-grid {
     display: grid;
     gap: 22px;

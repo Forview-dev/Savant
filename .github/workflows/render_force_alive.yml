@@ -4,7 +4,7 @@ on:
   schedule:
     # Runs every 14 minutes
     - cron: "*/14 * * * *"
-  workflow_dispatch: {}  # allow manual run from the Actions tab
+  workflow_dispatch: {} # allow manual run from the Actions tab
 
 jobs:
   ping:
