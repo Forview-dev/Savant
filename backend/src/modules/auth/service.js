@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { env } from '../../config/env.js';
 import { sendLoginEmail } from './email.js';
-import { pool } from '../../db/pool.js';
+import { pool } from '../../lib/db.js';
 
 // naive per-email cooldown (in-memory; OK for dev)
 const lastRequestPerEmail = new Map();

@@ -1,4 +1,4 @@
-import { pool } from '../../db/pool.js';
+import { pool } from '../../lib/db.js';
 
 function nowIso() {
   return new Date().toISOString();
