@@ -814,7 +814,6 @@ button.danger:hover {
 .rich-content h3,
 .rich-content h4 {
     color: var(--accent-2);
-    line-height: 1.2;
 }
 
 .rich-content h1 {
