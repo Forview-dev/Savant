@@ -11,17 +11,6 @@ import { authRouter } from './modules/auth/routes.js';
 import { requireAuthOptional, signSession } from './middleware/auth.js';
 import { sopsRouter } from './modules/sops/routes.js';
 import { query } from './lib/db.js';
-import { assertDb } from './db/pool.js';
-
-// pool check
-(async () => {
-  try {
-    await assertDb();
-    console.log('[DB] connectivity OK; host:', new URL(process.env.DATABASE_URL).host);
-  } catch (e) {
-    console.error('[DB] FAIL', e);
-  }
-})();
 
 const logger = pino({ level: env.LOG_LEVEL });
 export const app = express();
@@ -32,17 +21,36 @@ app.use(
     crossOriginEmbedderPolicy: false,
   })
 );
-app.use(
-  cors({
-    origin: env.FRONTEND_ORIGIN,
-    credentials: true,
-  })
-);
+// CORS: allow exact FE origin (and common local dev origins), with credentials
+const allowedOrigins = new Set([
+  env.FRONTEND_ORIGIN,                  // e.g., https://savant-1ig.pages.dev
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+]);
+
+const corsOptions = {
+  origin(origin, cb) {
+    // allow same-origin requests (no Origin header) and whitelisted FE origins
+    if (!origin || allowedOrigins.has(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+  preflightContinue: false,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight for all routes
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(pinoHttp({ logger }));
 
 app.set('signSession', signSession);
+app.set('trust proxy', 1);
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -65,8 +73,11 @@ app.use('/auth', authRouter);
 
 app.get('/me', requireAuthOptional, async (req, res) => {
   try {
-    // If not logged in, keep current behavior
-    if (!req.user) return res.status(200).json({ user: null });
+    // never cache auth state
+    res.setHeader('Cache-Control', 'no-store');
+
+    // If not logged in, signal clearly
+    if (!req.user) return res.status(401).json({ error: 'unauthenticated' });
 
     const email = req.user.email;
 
@@ -93,7 +104,7 @@ app.get('/me', requireAuthOptional, async (req, res) => {
     console.error('GET /me failed:', err);
     // On error, don't leak details; but still return whatever we have
     const user = req.user ? { email: req.user.email, role: req.user.role } : null;
-    return res.status(200).json({ user });
+    return res.status(401).json({ error: 'unauthenticated', user });
   }
 });
 

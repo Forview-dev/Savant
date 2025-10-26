@@ -71,7 +71,8 @@ authRouter.get('/verify', async (req, res) => {
   const jwtToken = req.app.get('signSession')(jwtPayload);
   setSessionCookie(res, jwtToken);
 
-  return res.redirect(302, env.FRONTEND_ORIGIN + '/');
+  res.setHeader('Cache-Control', 'no-store');
+  return res.redirect(303, env.FRONTEND_ORIGIN + '/app');
 });
 
 authRouter.post('/logout', (req, res) => {

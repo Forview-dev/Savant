@@ -1,6 +1,24 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 
+// Compute cross-site safe cookie options
+function buildCookieOptions() {
+  // For production (Render), cookies must be cross-site: SameSite=None; Secure
+  const isProd = env.NODE_ENV === 'production';
+  const sameSite = isProd ? 'none' : (env.COOKIE_SAMESITE || 'lax');
+  const secure = isProd ? true : !!env.COOKIE_SECURE;
+
+  const opts = {
+    httpOnly: true,
+    secure,
+    sameSite,
+    path: '/',
+    maxAge: env.JWT_EXPIRES * 1000,
+    // IMPORTANT: do NOT set domain for cross-origin FE/BE; let it default to backend host
+  };
+  return opts;
+}
+
 export function signSession(payload) {
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES });
 }
@@ -14,24 +32,15 @@ export function verifySession(token) {
 }
 
 export function setSessionCookie(res, token) {
-  res.cookie(env.COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: env.COOKIE_SAMESITE,
-    maxAge: env.JWT_EXPIRES * 1000,
-    domain: env.COOKIE_DOMAIN,
-    path: '/',
-  });
+  const opts = buildCookieOptions();
+  res.cookie(env.COOKIE_NAME, token, opts);
 }
 
 export function clearSessionCookie(res) {
-  res.clearCookie(env.COOKIE_NAME, {
-    httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: env.COOKIE_SAMESITE,
-    domain: env.COOKIE_DOMAIN,
-    path: '/',
-  });
+  const opts = buildCookieOptions();
+  // clearCookie ignores maxAge, but keeping sameSite/secure/path ensures the deletion matches the original cookie
+  delete opts.maxAge;
+  res.clearCookie(env.COOKIE_NAME, opts);
 }
 
 export function requireAuthOptional(req, _res, next) {
