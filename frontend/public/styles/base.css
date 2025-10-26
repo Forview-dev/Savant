@@ -69,6 +69,23 @@ body>* {
     padding: 0 24px;
 }
 
+.card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    box-shadow: var(--shadow-card);
+    padding: 28px 32px;
+    color: var(--fg);
+    line-height: 1.6;
+    backdrop-filter: blur(6px);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
 /* Header */
 .site-header {
     background: transparent;
