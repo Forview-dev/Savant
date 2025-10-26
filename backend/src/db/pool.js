@@ -74,6 +74,9 @@ async function ensureIPv4(connectionString) {
   return connectionString;
 }
 
+const originalUrl = parseUrl(env.DATABASE_URL);
+const originalHostname = originalUrl?.hostname;
+
 const connectionString = await ensureIPv4(env.DATABASE_URL);
 const parsedUrl = parseUrl(connectionString);
 const sslMode = parsedUrl?.searchParams
@@ -103,6 +106,12 @@ const sslRejectUnauthorized =
 
 const caCertificate = normaliseCertificate(env.DB_SSL_CA_CERT);
 
+const effectiveHostname = parsedUrl?.hostname;
+const sslServername =
+  originalHostname && effectiveHostname && originalHostname !== effectiveHostname
+    ? originalHostname
+    : effectiveHostname ?? originalHostname;
+
 const sslConfig = sslEnabled
   ? {
       rejectUnauthorized:
@@ -110,6 +119,7 @@ const sslConfig = sslEnabled
           ? true
           : sslRejectUnauthorized ?? false,
       ...(caCertificate ? { ca: caCertificate } : {}),
+      ...(sslServername ? { servername: sslServername } : {}),
     }
   : false;
 

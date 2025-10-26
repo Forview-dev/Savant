@@ -36,8 +36,8 @@ test('shared pool honors production SSL and IPv4 settings', async () => {
 
   assert.deepEqual(
     message.ssl,
-    { rejectUnauthorized: false },
-    'pool should enable SSL with relaxed certificate validation'
+    { rejectUnauthorized: false, servername: 'db.example.com' },
+    'pool should enable SSL with relaxed certificate validation and preserve original host for SNI'
   );
 
   assert.ok(message.lookupResult);
@@ -69,7 +69,12 @@ test('pool infers SSL mode from connection string', async () => {
   assert.equal(
     message.ssl?.rejectUnauthorized,
     false,
-    'pool should relax certificate validation when sslmode=require',
+    'pool should relax certificate validation when sslmode=require'
+  );
+  assert.equal(
+    message.ssl?.servername,
+    'db.example.com',
+    'pool should pass the original hostname as SNI even when not rewriting the URL'
   );
 
   await worker.terminate();
@@ -100,7 +105,12 @@ test('pool loads CA bundle when provided', async () => {
   assert.equal(
     message.ssl.rejectUnauthorized,
     true,
-    'pool should enforce certificate validation when CA bundle supplied',
+    'pool should enforce certificate validation when CA bundle supplied'
+  );
+  assert.equal(
+    message.ssl.servername,
+    'db.example.com',
+    'pool should retain the original hostname for SNI when CA bundle is present'
   );
   assert.equal(message.ssl.ca, pem.replace(/\\n/g, '\n'));
 
