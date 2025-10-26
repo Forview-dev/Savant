@@ -23,7 +23,7 @@ function boolOrDefault(v, def = false) {
 }
 
 export const env = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  NODE_ENV: process.env.NODE_ENV || 'production',
   LOG_LEVEL:
     process.env.LOG_LEVEL ||
     (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),

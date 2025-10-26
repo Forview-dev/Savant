@@ -4,19 +4,14 @@ import { env } from '../config/env.js';
 // Compute cross-site safe cookie options
 function buildCookieOptions() {
   // For production (Render), cookies must be cross-site: SameSite=None; Secure
-  const isProd = env.NODE_ENV === 'production';
-  const sameSite = isProd ? 'none' : (env.COOKIE_SAMESITE || 'lax');
-  const secure = isProd ? true : !!env.COOKIE_SECURE;
-
-  const opts = {
+  return {
     httpOnly: true,
-    secure,
-    sameSite,
+    secure: true,          // always secure
+    sameSite: 'none',      // always None (required for cross-site)
     path: '/',
     maxAge: env.JWT_EXPIRES * 1000,
-    // IMPORTANT: do NOT set domain for cross-origin FE/BE; let it default to backend host
+
   };
-  return opts;
 }
 
 export function signSession(payload) {

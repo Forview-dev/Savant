@@ -73,7 +73,15 @@ authRouter.get('/verify', async (req, res) => {
   setSessionCookie(res, jwtToken);
 
   res.setHeader('Cache-Control', 'no-store');
-  return res.redirect(303, env.FRONTEND_ORIGIN + '/app');
+  // return res.redirect(303, env.FRONTEND_ORIGIN + '/app');
+  return res.status(200).send(`
+    <!doctype html>
+    <meta charset="utf-8">
+    <title>Savant – Signed In</title>
+    <p>✅ Session cookie set for <strong>${verified.email}</strong>.</p>
+    <p><a href="${env.FRONTEND_ORIGIN}/app">Continue to the app</a></p>
+    <script>setTimeout(() => location.href='${env.FRONTEND_ORIGIN}/app', 1500);</script>
+  `);
 });
 
 authRouter.post('/logout', (req, res) => {

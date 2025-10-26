@@ -45,12 +45,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // handle preflight for all routes
+
+app.set('trust proxy', 1);
 app.use(cookieParser());
+
 app.use(express.json({ limit: '1mb' }));
 app.use(pinoHttp({ logger }));
 
 app.set('signSession', signSession);
-app.set('trust proxy', 1);
 
 app.get('/', (req, res) => {
   res.status(200).json({
