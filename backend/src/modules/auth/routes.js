@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { requestMagicLink, verifyMagicToken } from './service.js';
+import {
+  MagicLinkRateLimitError,
+  requestMagicLink,
+  verifyMagicToken,
+} from './service.js';
 import { clearSessionCookie, setSessionCookie } from '../../middleware/auth.js';
 import { createRateLimiter } from '../../middleware/rateLimit.js';
 import { env } from '../../config/env.js';
@@ -30,8 +34,20 @@ authRouter.post('/magic-link', magicLinkRateLimiter, async (req, res) => {
       .status(200)
       .json({ ok: true, message: 'Check your email for a login link.' });
   } catch (err) {
+    if (err instanceof MagicLinkRateLimitError) {
+      if (err.retryAfterSeconds) {
+        res.setHeader('Retry-After', String(err.retryAfterSeconds));
+      }
+      req.log.warn({ err, email }, 'magic-link request throttled');
+      return res
+        .status(429)
+        .json({ error: 'Too many login attempts. Please try again shortly.' });
+    }
+
     req.log.error({ err }, 'magic-link failed');
-    return res.status(429).json({ error: 'Please try again later.' });
+    return res
+      .status(500)
+      .json({ error: 'Unable to send login link. Please try again later.' });
   }
 });
 

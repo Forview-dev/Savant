@@ -47,4 +47,5 @@ export const env = {
   DB_SSL_CA_CERT: process.env.DB_SSL_CA_CERT,
   DB_DISABLE_IPV6: boolOrDefault(process.env.DB_DISABLE_IPV6, true),
   DB_IPV4_HOST: process.env.DB_IPV4_HOST,
+  MAGIC_LINK_MIN_INTERVAL_MS: process.env.MAGIC_LINK_MIN_INTERVAL_MS,
 };
