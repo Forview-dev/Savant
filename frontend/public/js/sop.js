@@ -252,10 +252,6 @@ async function renderSop() {
     </section>
 
     <section class="card sop-body">
-      <div class="section-heading">
-        <h2>Procédure détaillée</h2>
-        <p class="muted">Suivez attentivement chaque étape afin de garantir une exécution fiable.</p>
-      </div>
       <div class="sop-content rich-content">${sop.current_html || '<p class="muted">Aucun contenu disponible.</p>'}</div>
     </section>
 
