@@ -5,12 +5,26 @@ import { pool } from '../../lib/db.js';
 
 // naive per-email cooldown (in-memory; OK for dev)
 const lastRequestPerEmail = new Map();
+let deliverMagicLink = sendLoginEmail;
+
+const cooldownMs = Number(env.MAGIC_LINK_MIN_INTERVAL_MS ?? 30_000);
+
+export class MagicLinkRateLimitError extends Error {
+  constructor(retryAfterSeconds) {
+    super('Rate limited');
+    this.name = 'MagicLinkRateLimitError';
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
 
 export async function requestMagicLink(email, req) {
   const now = Date.now();
   const last = lastRequestPerEmail.get(email) || 0;
-  if (now - last < 30_000) throw new Error('Rate limited');
-  lastRequestPerEmail.set(email, now);
+  const remainingMs = cooldownMs - (now - last);
+  if (remainingMs > 0) {
+    const retryAfterSeconds = Math.ceil(remainingMs / 1000);
+    throw new MagicLinkRateLimitError(retryAfterSeconds);
+  }
 
   const { rowCount } = await pool.query(
     `SELECT 1 FROM users WHERE email = $1;`,
@@ -23,15 +37,27 @@ export async function requestMagicLink(email, req) {
 
   const token = nanoid(32);
   const expiresAt = new Date(now + 15 * 60 * 1000); // 15 min
+  let tokenInserted = false;
 
-  await pool.query(
-    `INSERT INTO magic_tokens (email, token, expires_at) VALUES ($1, $2, $3);`,
-    [email, token, expiresAt]
-  );
+  try {
+    await pool.query(
+      `INSERT INTO magic_tokens (email, token, expires_at) VALUES ($1, $2, $3);`,
+      [email, token, expiresAt]
+    );
+    tokenInserted = true;
 
-  const verifyUrl = `${env.APP_BASE_URL}/auth/verify?token=${encodeURIComponent(token)}`;
-  await sendLoginEmail(email, verifyUrl, req);
-  return true;
+    const verifyUrl = `${env.APP_BASE_URL}/auth/verify?token=${encodeURIComponent(token)}`;
+    await deliverMagicLink(email, verifyUrl, req);
+    lastRequestPerEmail.set(email, Date.now());
+    return true;
+  } catch (err) {
+    if (tokenInserted) {
+      await pool
+        .query(`DELETE FROM magic_tokens WHERE token = $1;`, [token])
+        .catch(() => {});
+    }
+    throw err;
+  }
 }
 
 export async function verifyMagicToken(token, req) {
@@ -65,3 +91,18 @@ export async function verifyMagicToken(token, req) {
   req.log?.info({ email: rec.email, role: rec.role }, 'magic token verified');
   return { email: rec.email, role: rec.role };
 }
+
+export const __test = {
+  resetCooldown() {
+    lastRequestPerEmail.clear();
+  },
+  getLastRequest(email) {
+    return lastRequestPerEmail.get(email);
+  },
+  setSendLoginEmail(mockFn) {
+    deliverMagicLink = mockFn;
+  },
+  resetSendLoginEmail() {
+    deliverMagicLink = sendLoginEmail;
+  },
+};

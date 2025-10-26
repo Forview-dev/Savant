@@ -50,3 +50,59 @@ test('shared pool honors production SSL and IPv4 settings', async () => {
 
   await worker.terminate();
 });
+
+test('pool infers SSL mode from connection string', async () => {
+  const env = {
+    NODE_ENV: 'production',
+    DATABASE_URL:
+      'postgres://user:pass@db.example.com:5432/prod?sslmode=require',
+    DB_DISABLE_IPV6: 'false',
+  };
+
+  const worker = runPoolSmoke(env);
+  const [message] = await once(worker, 'message');
+
+  if (message?.error) {
+    throw new Error(`${message.error}\n${message.stack || ''}`.trim());
+  }
+
+  assert.equal(
+    message.ssl?.rejectUnauthorized,
+    false,
+    'pool should relax certificate validation when sslmode=require',
+  );
+
+  await worker.terminate();
+});
+
+test('pool loads CA bundle when provided', async () => {
+  const pem = [
+    '-----BEGIN CERTIFICATE-----',
+    'MIIBszCCAVmgAwIBAgIUWukd5d==',
+    '-----END CERTIFICATE-----',
+  ].join('\\n');
+
+  const env = {
+    NODE_ENV: 'production',
+    DATABASE_URL:
+      'postgres://user:pass@db.example.com:5432/prod?sslmode=verify-full',
+    DB_SSL_CA_CERT: pem,
+  };
+
+  const worker = runPoolSmoke(env);
+  const [message] = await once(worker, 'message');
+
+  if (message?.error) {
+    throw new Error(`${message.error}\n${message.stack || ''}`.trim());
+  }
+
+  assert.ok(message.ssl);
+  assert.equal(
+    message.ssl.rejectUnauthorized,
+    true,
+    'pool should enforce certificate validation when CA bundle supplied',
+  );
+  assert.equal(message.ssl.ca, pem.replace(/\\n/g, '\n'));
+
+  await worker.terminate();
+});
