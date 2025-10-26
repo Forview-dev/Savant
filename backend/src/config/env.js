@@ -9,12 +9,24 @@ function required(name, fallback = undefined) {
   return val;
 }
 
-function toBool(v, def = false) {
-  if (v === undefined || v === null) return def;
+function parseBoolean(v) {
+  if (v === undefined || v === null) return undefined;
   const s = v.toString().trim().toLowerCase();
   if (['true', '1', 'yes', 'y', 'on'].includes(s)) return true;
   if (['false', '0', 'no', 'n', 'off'].includes(s)) return false;
-  return def;
+  return undefined;
+}
+
+function boolOrDefault(v, def = false) {
+  const parsed = parseBoolean(v);
+  return parsed === undefined ? def : parsed;
+}
+
+function optionalBool(v) {
+  if (v === undefined || v === null) return undefined;
+  const trimmed = v.toString().trim();
+  if (!trimmed) return undefined;
+  return toBool(trimmed, undefined);
 }
 
 function optionalBool(v) {
@@ -42,12 +54,12 @@ export const env = {
   COOKIE_SAMESITE: 'lax',
 
   DATABASE_URL: required('DATABASE_URL'),
-  DB_SSL: optionalBool(process.env.DB_SSL),
-  DB_SSL_REJECT_UNAUTHORIZED: optionalBool(
+  DB_SSL: parseBoolean(process.env.DB_SSL),
+  DB_SSL_REJECT_UNAUTHORIZED: parseBoolean(
     process.env.DB_SSL_REJECT_UNAUTHORIZED,
   ),
   DB_SSL_CA_CERT: process.env.DB_SSL_CA_CERT,
-  DB_DISABLE_IPV6: toBool(process.env.DB_DISABLE_IPV6, true),
+  DB_DISABLE_IPV6: boolOrDefault(process.env.DB_DISABLE_IPV6, true),
   DB_IPV4_HOST: process.env.DB_IPV4_HOST,
   MAGIC_LINK_MIN_INTERVAL_MS: process.env.MAGIC_LINK_MIN_INTERVAL_MS,
 };
