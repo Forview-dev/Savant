@@ -182,10 +182,10 @@ function renderActions(id) {
   `;
 
   if (canEdit()) {
-    buttons += `<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Edit SOP</button></a>`;
+    buttons += `<a class="tile-link" href="/edit.html#${encodeURIComponent(id)}"><button>Éditer SOP</button></a>`;
   }
   if (canDelete()) {
-    buttons += `<button id="delete-sop-btn" class="danger" title="Delete SOP">Delete</button>`;
+    buttons += `<button id="delete-sop-btn" class="danger" title="Delete SOP">Supprimer</button>`;
   }
 
   bar.innerHTML = buttons;
@@ -221,8 +221,8 @@ async function renderSop() {
     <div class="card">
       <h2>${escapeHtml(sop.title)}</h2>
       <p class="muted">
-        Category: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
-        Updated: ${new Date(sop.updated_at).toLocaleString()}
+        Catégorie: <strong>${escapeHtml(sop.category || 'Uncategorized')}</strong><br>
+        Mis à jour: ${new Date(sop.updated_at).toLocaleString()}
       </p>
       <div>${tags}</div>
     </div>
@@ -230,7 +230,7 @@ async function renderSop() {
     <div class="card"><div class="tile-body">${sop.current_html}</div></div>
 
     <div class="card">
-      <h3>Version History</h3>
+      <h3>Notes de version:</h3>
       <div class="versions">${vRows}</div>
     </div>
   `;
