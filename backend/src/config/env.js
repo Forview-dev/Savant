@@ -43,7 +43,7 @@ export const env = {
     (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
 
   PORT: Number(process.env.PORT || 4000),
-  FRONTEND_ORIGIN: required('FRONTEND_ORIGIN', 'http://localhost:5173'),
+  FRONTEND_ORIGIN: required('FRONTEND_ORIGIN', 'https://savant-1ig.pages.dev'),
   APP_BASE_URL: required('APP_BASE_URL', 'http://localhost:4000'),
 
   JWT_SECRET: required('JWT_SECRET', 'change-me-in-dev'),
