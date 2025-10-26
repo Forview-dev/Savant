@@ -23,6 +23,7 @@ try {
 
   parentPort?.postMessage({
     connectionString: pool.options.connectionString,
+    host: pool.options.host,
     ssl: pool.options.ssl,
     lookupResult,
   });

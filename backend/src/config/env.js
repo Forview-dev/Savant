@@ -10,10 +10,18 @@ function required(name, fallback = undefined) {
 }
 
 function toBool(v, def = false) {
-  const s = (v ?? '').toString().toLowerCase();
-  if (s === 'true' || s === '1' || s === 'yes') return true;
-  if (s === 'false' || s === '0' || s === 'no') return false;
+  if (v === undefined || v === null) return def;
+  const s = v.toString().trim().toLowerCase();
+  if (['true', '1', 'yes', 'y', 'on'].includes(s)) return true;
+  if (['false', '0', 'no', 'n', 'off'].includes(s)) return false;
   return def;
+}
+
+function optionalBool(v) {
+  if (v === undefined || v === null) return undefined;
+  const trimmed = v.toString().trim();
+  if (!trimmed) return undefined;
+  return toBool(trimmed, undefined);
 }
 
 export const env = {
@@ -34,7 +42,12 @@ export const env = {
   COOKIE_SAMESITE: 'lax',
 
   DATABASE_URL: required('DATABASE_URL'),
-  DB_SSL: toBool(process.env.DB_SSL, false),
+  DB_SSL: optionalBool(process.env.DB_SSL),
+  DB_SSL_REJECT_UNAUTHORIZED: optionalBool(
+    process.env.DB_SSL_REJECT_UNAUTHORIZED,
+  ),
+  DB_SSL_CA_CERT: process.env.DB_SSL_CA_CERT,
   DB_DISABLE_IPV6: toBool(process.env.DB_DISABLE_IPV6, true),
   DB_IPV4_HOST: process.env.DB_IPV4_HOST,
+  MAGIC_LINK_MIN_INTERVAL_MS: process.env.MAGIC_LINK_MIN_INTERVAL_MS,
 };
