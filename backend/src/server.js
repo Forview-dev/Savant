@@ -14,7 +14,7 @@ import { query } from './lib/db.js';
 
 
 const logger = pino({ level: env.LOG_LEVEL });
-const app = express();
+export const app = express();
 
 app.use(
   helmet({
@@ -97,6 +97,8 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-app.listen(env.PORT, () => {
-  logger.info({ port: env.PORT, frontend: env.FRONTEND_ORIGIN }, 'API listening');
-});
+if (env.NODE_ENV !== 'test') {
+  app.listen(env.PORT, () => {
+    logger.info({ port: env.PORT, frontend: env.FRONTEND_ORIGIN }, 'API listening');
+  });
+}

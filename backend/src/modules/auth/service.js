@@ -36,7 +36,12 @@ export async function requestMagicLink(email, req) {
 
 export async function verifyMagicToken(token, req) {
   const { rows } = await pool.query(
-    `SELECT id, email, expires_at, used_at FROM magic_tokens WHERE token=$1;`,
+    `
+    SELECT mt.id, mt.email, mt.expires_at, mt.used_at, u.role
+      FROM magic_tokens mt
+      LEFT JOIN users u ON u.email = mt.email
+     WHERE mt.token = $1;
+    `,
     [token]
   );
   if (!rows.length) return null;
@@ -48,19 +53,15 @@ export async function verifyMagicToken(token, req) {
     return null;
   }
 
-  const { rowCount: userCount } = await pool.query(
-    `SELECT 1 FROM users WHERE email = $1;`,
-    [rec.email]
-  );
-  if (!userCount) {
+  if (!rec.role) {
     await pool.query(`DELETE FROM magic_tokens WHERE id=$1;`, [rec.id]);
-    req.log.warn({ email: rec.email }, 'magic token without account');
+    req.log?.warn({ email: rec.email }, 'magic token without account');
     return null;
   }
 
   // mark single-use
   await pool.query(`UPDATE magic_tokens SET used_at=NOW() WHERE id=$1;`, [rec.id]);
 
-  req.log.info({ email: rec.email }, 'magic token verified');
-  return { email: rec.email };
+  req.log?.info({ email: rec.email, role: rec.role }, 'magic token verified');
+  return { email: rec.email, role: rec.role };
 }

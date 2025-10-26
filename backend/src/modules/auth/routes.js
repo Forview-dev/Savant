@@ -47,7 +47,11 @@ authRouter.get('/verify', async (req, res) => {
     return res.status(400).send('Invalid or expired token.');
   }
 
-  const jwtPayload = { sub: verified.email, role: 'editor' };
+  const role = verified.role ?? 'editor';
+  if (!verified.role) {
+    req.log?.warn({ email: verified.email }, 'No role found on verified token; using default');
+  }
+  const jwtPayload = { sub: verified.email, role };
   const jwtToken = req.app.get('signSession')(jwtPayload);
   setSessionCookie(res, jwtToken);
 
