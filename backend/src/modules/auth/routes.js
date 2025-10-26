@@ -80,7 +80,6 @@ authRouter.get('/verify', async (req, res) => {
     <title>Savant – Signed In</title>
     <p>✅ Session cookie set for <strong>${verified.email}</strong>.</p>
     <p><a href="${env.FRONTEND_ORIGIN}/app">Continue to the app</a></p>
-    <script>setTimeout(() => location.href='${env.FRONTEND_ORIGIN}/app', 1500);</script>
   `);
 });
 
