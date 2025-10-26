@@ -804,7 +804,6 @@ button.danger:hover {
 .rich-content {
     color: var(--fg);
     font-size: 16px;
-    line-height: 1.8;
     display: grid;
     gap: 18px;
 }
