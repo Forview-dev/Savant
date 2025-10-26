@@ -1,0 +1,38 @@
+name: Ping /healthz
+
+on:
+  schedule:
+    # Runs every 14 minutes
+    - cron: "*/14 * * * *"
+  workflow_dispatch: {}  # allow manual run from the Actions tab
+
+jobs:
+  ping:
+    name: Curl /healthz
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    concurrency:
+      group: ping-healthz
+      cancel-in-progress: false
+
+    env:
+      PING_URL: https://savant-mifd.onrender.com/healthz
+
+    steps:
+      - name: Add short random jitter (avoid exact-time bursts)
+        run: sleep $((RANDOM % 20))
+
+      - name: Ping /healthz
+        run: |
+          echo "Pinging: $PING_URL"
+          # Fail on HTTP errors, retry a few times with backoff
+          for i in 1 2 3; do
+            if curl -fsS --max-time 10 "$PING_URL" > /dev/null; then
+              echo "OK"
+              exit 0
+            fi
+            echo "Attempt $i failed; retrying..."
+            sleep $((i * 5))
+          done
+          echo "Ping failed after retries"
+          exit 1
