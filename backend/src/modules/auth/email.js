@@ -14,13 +14,28 @@ const devTransport = {
 };
 
 const smtpTransport = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  auth: process.env.SMTP_USER
-    ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    : undefined,
+  host: env.SMTP_HOST,                        // in-v3.mailjet.com
+  port: Number(env.SMTP_PORT || 587),
+  secure: USE_SECURE,                         // true for 465, false otherwise
+  auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+  connectionTimeout: 15000,                   // 15s -> fail fast
+  greetingTimeout: 15000,
+  socketTimeout: 20000,
+  tls: {
+    servername: 'in-v3.mailjet.com',          // SNI
+    minVersion: 'TLSv1.2'
+    // DO NOT put rejectUnauthorized:false here (you already disabled globally during DB debugging; remove that when you switch to CA)
+  }
 });
+
+
+console.log('[MAIL] init', {
+  host: env.SMTP_HOST,
+  port: env.SMTP_PORT,
+  secure: String(env.SMTP_PORT) === '465',
+  from: env.MAIL_FROM
+});
+
 
 export async function sendLoginEmail(toEmail, verifyUrl, req) {
   const subject = 'Your login link — SOP Web App';
