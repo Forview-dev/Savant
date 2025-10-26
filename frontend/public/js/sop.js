@@ -177,31 +177,29 @@ function renderActions(id) {
   const bar = document.getElementById('sop-actions');
   if (!bar) return;
 
-  let buttons = `
-    <a href="/" class="sop-action sop-action--ghost">
-      <span aria-hidden="true">←</span>
-      <span>Tableau de bord</span>
+  const buttons = [];
+
+  buttons.push(`
+    <a class="sop-action-link" href="/">
+      <button class="ghost" id="back-dashboard" title="Retour au tableau de bord">← Tableau</button>
     </a>
-  `;
+  `);
 
   if (canEdit()) {
-    buttons += `
-      <a class="sop-action sop-action--primary" href="/edit.html#${encodeURIComponent(id)}">
-        <span aria-hidden="true">✎</span>
-        <span>Éditer</span>
+    buttons.push(`
+      <a class="sop-action-link" href="/edit.html#${encodeURIComponent(id)}">
+        <button>Modifier le SOP</button>
       </a>
-    `;
-  }
-  if (canDelete()) {
-    buttons += `
-      <button id="delete-sop-btn" class="sop-action sop-action--danger" type="button" title="Supprimer ce SOP">
-        <span aria-hidden="true">🗑</span>
-        <span>Supprimer</span>
-      </button>
-    `;
+    `);
   }
 
-  bar.innerHTML = buttons;
+  if (canDelete()) {
+    buttons.push(`
+      <button id="delete-sop-btn" class="danger" title="Supprimer ce SOP">Supprimer</button>
+    `);
+  }
+
+  bar.innerHTML = `<div class="sop-actions__inner">${buttons.join('')}</div>`;
 
   // Wire delete modal
   document.getElementById('delete-sop-btn')?.addEventListener('click', () => {
@@ -245,49 +243,48 @@ async function renderSop() {
     metaItems.push(`<div class="sop-meta-item"><span>Client</span><span>${escapeHtml(sop.client_name)}</span></div>`);
   }
 
-  titleEl.textContent = sop.title || 'Sans titre';
-  categoryEl.textContent = `Catégorie • ${sop.category || 'Non classé'}`;
-  metaEl.innerHTML = metaItems.join('');
+  const lastUpdated = sop.updated_at ? new Date(sop.updated_at).toLocaleString() : 'Date inconnue';
+  const category = sop.category ? escapeHtml(sop.category) : 'Non catégorisé';
 
-  const tagItems = (sop.tags || [])
-    .filter(Boolean)
-    .map(t => `<span class="badge">${escapeHtml(t)}</span>`);
-  tagsEl.innerHTML = tagItems.length
-    ? tagItems.join('')
-    : '<span class="badge is-empty">Aucun tag</span>';
+  const tags = (sop.tags || []).length
+    ? (sop.tags || []).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join('')
+    : '<span class="badge badge-muted">Aucun tag</span>';
 
-  const timeline = versions.length
-    ? versions.map(v => {
-        const createdAt = v.created_at ? new Date(v.created_at).toLocaleString() : '—';
-        const message = v.message
-          ? escapeHtml(v.message)
-          : '<span class="muted">Aucune note</span>';
-        return `
-          <div class="sop-timeline__item">
-            <span class="sop-timeline__marker" aria-hidden="true"></span>
-            <span class="sop-timeline__badge">v${escapeHtml(String(v.version_no))}</span>
-            <div class="sop-timeline__meta">${escapeHtml(createdAt)}</div>
-            <div class="sop-timeline__message">${message}</div>
+  const vRows = versions.length
+    ? versions.map(v => `
+        <li class="timeline-item">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">Version ${escapeHtml(`v${v.version_no}`)}</div>
+            <div class="timeline-meta">${new Date(v.created_at).toLocaleString()}</div>
+            ${v.message ? `<p class="timeline-description">${escapeHtml(v.message)}</p>` : ''}
           </div>
-        `;
-      }).join('')
-    : '<p class="sop-timeline__empty">Pas encore de versions enregistrées.</p>';
-
-  const currentHtml = sop.current_html && sop.current_html.trim()
-    ? sop.current_html
-    : '<p class="muted">Ce SOP ne contient pas encore de contenu.</p>';
+        </li>
+      `).join('')
+    : '<li class="timeline-empty muted">Aucune version précédente.</li>';
 
   container.innerHTML = `
-    <article class="sop-content card">
-      <div class="sop-content__header">
-        <span class="sop-content__eyebrow">Procédure détaillée</span>
+    <section class="card sop-hero">
+      <div class="sop-hero__eyebrow">Procédure opérationnelle standard</div>
+      <h1 class="sop-hero__title">${escapeHtml(sop.title)}</h1>
+      <div class="sop-hero__meta">
+        <span class="sop-meta-chip"><span class="label">Catégorie</span>${category}</span>
+        <span class="sop-meta-chip"><span class="label">Dernière mise à jour</span>${lastUpdated}</span>
       </div>
-      <article class="sop-richtext">${currentHtml}</article>
-    </article>
-    <aside class="sop-sidebar card">
-      <h3>Historique des versions</h3>
-      <div class="sop-timeline">${timeline}</div>
-    </aside>
+      <div class="sop-hero__tags">${tags}</div>
+    </section>
+
+    <section class="card sop-body">
+      <div class="sop-content rich-content">${sop.current_html || '<p class="muted">Aucun contenu disponible.</p>'}</div>
+    </section>
+
+    <section class="card sop-versions">
+      <div class="section-heading">
+        <h2>Historique des versions</h2>
+        <p class="muted">Gardez une trace des améliorations clés apportées à ce SOP.</p>
+      </div>
+      <ol class="version-timeline">${vRows}</ol>
+    </section>
   `;
 
   document.title = `Savant! — ${sop.title || 'SOP'}`;
