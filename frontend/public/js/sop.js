@@ -178,7 +178,7 @@ function renderActions(id) {
   if (!bar) return;
 
   let buttons = `
-    <a href="/"><button class="ghost" id="back-dashboard">← Back to Dashboard</button></a>
+    <a href="/"><button class="ghost" id="back-dashboard">←</button></a>
   `;
 
   if (canEdit()) {
