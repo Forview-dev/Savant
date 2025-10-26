@@ -72,13 +72,26 @@ authRouter.get('/verify', async (req, res) => {
   const jwtToken = req.app.get('signSession')(jwtPayload);
   setSessionCookie(res, jwtToken);
 
+  // TEMP DEBUG: set a non-HttpOnly cookie to verify browser stores any cookie from this response
+  res.cookie('sid_dbg', '1', {
+    secure: true,
+    sameSite: 'none',
+    path: '/',
+    maxAge: 5 * 60 * 1000, // 5 minutes
+  });
+
   res.setHeader('Cache-Control', 'no-store');
   // return res.redirect(303, env.FRONTEND_ORIGIN + '/app');
   return res.status(200).send(`
     <!doctype html>
     <meta charset="utf-8">
-    <title>Savant – Signed In</title>
-    <p>✅ Session cookie set for <strong>${verified.email}</strong>.</p>
+    <title>Savant – Signed In (Debug)</title>
+    <p>✅ Server attempted to set cookies for <strong>${verified.email}</strong>.</p>
+    <ul>
+      <li><code>${env.COOKIE_NAME}</code> — HttpOnly (won't appear in <code>document.cookie</code>, check DevTools → Application → Cookies for <strong>${req.headers.host}</strong>).</li>
+      <li><code>sid_dbg</code> — non-HttpOnly (should appear in <code>document.cookie</code> and in Application → Cookies).</li>
+    </ul>
+    <p>If <code>sid_dbg</code> is present but <code>${env.COOKIE_NAME}</code> is not, HttpOnly is working but the client may be blocking third‑party cookies in app context.</p>
     <p><a href="${env.FRONTEND_ORIGIN}/app">Continue to the app</a></p>
   `);
 });
