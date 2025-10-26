@@ -9,9 +9,17 @@ import { authRouter } from './modules/auth/routes.js';
 import { requireAuthOptional, signSession } from './middleware/auth.js';
 import { sopsRouter } from './modules/sops/routes.js';
 import { query } from './lib/db.js';
+import { pool } from './db/pool.js';
 
-// import { withFreshRole } from './middleware/withFreshRole.js';
-
+// pool check
+(async () => {
+  try {
+    await pool.query('select 1');
+    console.log('[DB] OK host:', new URL(process.env.DATABASE_URL).host);
+  } catch (e) {
+    console.error('[DB] FAIL', e);
+  }
+})();
 
 const logger = pino({ level: env.LOG_LEVEL });
 export const app = express();
