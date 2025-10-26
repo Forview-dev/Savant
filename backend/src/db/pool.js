@@ -39,39 +39,29 @@ function rewriteHost(connectionString, host) {
   }
 }
 
-async function ensureIPv4(connectionString, originalHostname) {
-  if (!connectionString) {
-    return { connectionString };
-  }
-
-  const resolvedOriginalHost =
-    originalHostname ?? parseUrl(connectionString)?.hostname ?? undefined;
+async function ensureIPv4(connectionString) {
+  if (!connectionString) return connectionString;
 
   const manualOverride = env.DB_IPV4_HOST?.trim();
   if (manualOverride) {
-    return {
-      connectionString: rewriteHost(connectionString, manualOverride),
-      servername: resolvedOriginalHost,
-    };
+    return rewriteHost(connectionString, manualOverride);
   }
 
   if (!env.DB_DISABLE_IPV6) {
-    return { connectionString, servername: resolvedOriginalHost };
-  }
-
-  const hostname = resolvedOriginalHost;
-  if (!hostname || hostname === 'localhost' || net.isIP(hostname) === 4) {
-    return { connectionString, servername: resolvedOriginalHost };
+    return connectionString;
   }
 
   try {
+    const url = new URL(connectionString);
+    const hostname = url.hostname;
+    if (!hostname || hostname === 'localhost' || net.isIP(hostname) === 4) {
+      return connectionString;
+    }
+
     const lookupResult = await dns.lookup(hostname, { family: 4 });
     if (lookupResult?.family === 4 && lookupResult.address) {
       console.info('Resolved database host to IPv4 address to avoid IPv6 connectivity issues');
-      return {
-        connectionString: rewriteHost(connectionString, lookupResult.address),
-        servername: hostname,
-      };
+      return rewriteHost(connectionString, lookupResult.address);
     }
   } catch (err) {
     if (err?.code === 'ENOTFOUND' || err?.code === 'EAI_AGAIN') {
@@ -81,16 +71,13 @@ async function ensureIPv4(connectionString, originalHostname) {
     }
   }
 
-  return { connectionString, servername: resolvedOriginalHost };
+  return connectionString;
 }
 
 const originalUrl = parseUrl(env.DATABASE_URL);
 const originalHostname = originalUrl?.hostname;
 
-const { connectionString, servername: servernameHint } = await ensureIPv4(
-  env.DATABASE_URL,
-  originalHostname,
-);
+const connectionString = await ensureIPv4(env.DATABASE_URL);
 const parsedUrl = parseUrl(connectionString);
 const sslMode = parsedUrl?.searchParams
   ?.get('sslmode')
@@ -119,7 +106,11 @@ const sslRejectUnauthorized =
 
 const caCertificate = normaliseCertificate(env.DB_SSL_CA_CERT);
 
-const sslServername = servernameHint ?? parsedUrl?.hostname ?? originalHostname;
+const effectiveHostname = parsedUrl?.hostname;
+const sslServername =
+  originalHostname && effectiveHostname && originalHostname !== effectiveHostname
+    ? originalHostname
+    : effectiveHostname ?? originalHostname;
 
 const sslConfig = sslEnabled
   ? {
