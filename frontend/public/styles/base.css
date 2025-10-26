@@ -618,21 +618,25 @@ button.danger:hover {
 .tile .tile-meta {
     color: var(--fg-muted);
     font-size: 14px;
+    margin-top: 8px;
 }
 
 .tile .tile-client {
+    margin-top: 10px;
     font-size: 13px;
     font-weight: 600;
     color: var(--accent-2);
 }
 
 .tile .tile-tags {
+    margin-top: 18px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
 .tile .tile-actions {
+    margin-top: 18px;
     display: flex;
     gap: 10px;
 }
@@ -809,7 +813,6 @@ button.danger:hover {
 .rich-content h2,
 .rich-content h3,
 .rich-content h4 {
-    margin: 28px 0 12px;
     color: var(--accent-2);
     line-height: 1.2;
 }
