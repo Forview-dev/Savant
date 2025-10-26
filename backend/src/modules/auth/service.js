@@ -46,29 +46,29 @@ export async function requestMagicLink(email, req) {
     );
     tokenInserted = true;
 
-    // Build a robust, normalized backend verify URL (no trailing slash; prefer https)
-    const rawBase = (env.APP_BASE_URL || '').trim();
+    // Build verify URL that lands on the FE proxy (/api) which forwards to the backend.
+    const rawBase = (env.FRONTEND_ORIGIN || '').trim();
     if (!rawBase) {
-      throw new Error('APP_BASE_URL is not configured');
+      throw new Error('FRONTEND_ORIGIN is not configured');
     }
     const base = rawBase.replace(/\/+$/, '');
-    const verifyUrl = `${base}/auth/verify?token=${encodeURIComponent(token)}`;
+    const verifyUrl = `${base}/api/auth/verify?token=${encodeURIComponent(token)}`;
 
-    // Diagnostics to catch wrong domain/host issues that prevent the cookie from being set
+    // Diagnostics: ensure link points to the FE origin and uses https
     try {
       const v = new URL(verifyUrl);
-      const reqHost = (req?.headers?.host || '').toLowerCase();
-      if (reqHost && v.host.toLowerCase() !== reqHost) {
-        req.log?.warn({ expectedHost: reqHost, linkHost: v.host }, 'magic-link host differs from backend host');
+      const fe = new URL(env.FRONTEND_ORIGIN);
+      if (v.host.toLowerCase() !== fe.host.toLowerCase()) {
+        req.log?.warn({ expectedHost: fe.host, linkHost: v.host }, 'magic-link host differs from FRONTEND_ORIGIN');
       }
       if (v.protocol !== 'https:') {
-        req.log?.warn({ protocol: v.protocol, verifyUrl }, 'APP_BASE_URL is not https; cookies may be rejected by browsers');
+        req.log?.warn({ protocol: v.protocol, verifyUrl }, 'FRONTEND_ORIGIN is not https; cookies may be rejected by browsers');
       }
     } catch (_e) {
       req.log?.warn({ verifyUrl }, 'verify URL is not a valid absolute URL');
     }
 
-    req.log?.info({ email, verifyUrl }, 'magic-link generated');
+    req.log?.info({ email, verifyUrl }, 'magic-link generated (via FE proxy)');
     await deliverMagicLink(email, verifyUrl, req);
     lastRequestPerEmail.set(email, Date.now());
     return true;
