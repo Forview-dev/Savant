@@ -46,7 +46,29 @@ export async function requestMagicLink(email, req) {
     );
     tokenInserted = true;
 
-    const verifyUrl = `${env.APP_BASE_URL}/auth/verify?token=${encodeURIComponent(token)}`;
+    // Build a robust, normalized backend verify URL (no trailing slash; prefer https)
+    const rawBase = (env.APP_BASE_URL || '').trim();
+    if (!rawBase) {
+      throw new Error('APP_BASE_URL is not configured');
+    }
+    const base = rawBase.replace(/\/+$/, '');
+    const verifyUrl = `${base}/auth/verify?token=${encodeURIComponent(token)}`;
+
+    // Diagnostics to catch wrong domain/host issues that prevent the cookie from being set
+    try {
+      const v = new URL(verifyUrl);
+      const reqHost = (req?.headers?.host || '').toLowerCase();
+      if (reqHost && v.host.toLowerCase() !== reqHost) {
+        req.log?.warn({ expectedHost: reqHost, linkHost: v.host }, 'magic-link host differs from backend host');
+      }
+      if (v.protocol !== 'https:') {
+        req.log?.warn({ protocol: v.protocol, verifyUrl }, 'APP_BASE_URL is not https; cookies may be rejected by browsers');
+      }
+    } catch (_e) {
+      req.log?.warn({ verifyUrl }, 'verify URL is not a valid absolute URL');
+    }
+
+    req.log?.info({ email, verifyUrl }, 'magic-link generated');
     await deliverMagicLink(email, verifyUrl, req);
     lastRequestPerEmail.set(email, Date.now());
     return true;
