@@ -1,8 +1,14 @@
 import express from 'express';
 import { query } from '../../lib/db.js';
-import { requireAuthOptional } from '../../middleware/auth.js';
+import { requireAuthOptional, requireAuthStrict, requireRole } from '../../middleware/auth.js';
 
 const sopsRouter = express.Router();
+const ensureSopEditor = requireRole(['admin', 'editor']);
+let runQuery = query;
+
+export function __setSopsQueryExecutor(fn) {
+  runQuery = typeof fn === 'function' ? fn : query;
+}
 
 /* =========================
    Helpers
@@ -99,7 +105,7 @@ sopsRouter.get('/sops', requireAuthOptional, async (req, res) => {
 
     const { sql, args } = buildWhere(req.query);
 
-    const { rows } = await query(
+    const { rows } = await runQuery(
       `
       SELECT id, title, category, tags, current_html, is_client, client_name, updated_at
       FROM sops
@@ -129,7 +135,7 @@ sopsRouter.get('/sops', requireAuthOptional, async (req, res) => {
  */
 sopsRouter.get('/sops/:id', requireAuthOptional, async (req, res) => {
   try {
-    const { rows } = await query(
+    const { rows } = await runQuery(
       `
       SELECT id, title, category, tags, current_html, is_client, client_name, updated_at
       FROM sops
@@ -156,7 +162,7 @@ sopsRouter.get('/sops/:id', requireAuthOptional, async (req, res) => {
  * POST /sops
  * Body: { title, category, tags[], html, delta?, message?, is_client?, client_name? }
  */
-sopsRouter.post('/sops', requireAuthOptional, async (req, res) => {
+sopsRouter.post('/sops', requireAuthStrict, ensureSopEditor, async (req, res) => {
   try {
     const { title, category, tags, html, delta, message, is_client, client_name } = req.body || {};
     if (!title || !html) return res.status(400).json({ error: 'title and html are required' });
@@ -165,7 +171,7 @@ sopsRouter.post('/sops', requireAuthOptional, async (req, res) => {
     const clientFlag = !!is_client;
     const clientName = clientFlag ? (client_name || null) : null;
 
-    const { rows } = await query(
+    const { rows } = await runQuery(
       `
       INSERT INTO sops (title, category, tags, current_html, is_client, client_name, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW())
@@ -176,7 +182,7 @@ sopsRouter.post('/sops', requireAuthOptional, async (req, res) => {
 
     // Optional version record
     if (message || delta) {
-      await query(
+      await runQuery(
         `
         INSERT INTO sop_versions (sop_id, version_no, message, delta, created_at)
         VALUES ($1, 1, $2, $3::jsonb, NOW())
@@ -196,7 +202,7 @@ sopsRouter.post('/sops', requireAuthOptional, async (req, res) => {
  * PUT /sops/:id
  * Body: { title, category, tags[], html, delta?, message?, is_client?, client_name? }
  */
-sopsRouter.put('/sops/:id', requireAuthOptional, async (req, res) => {
+sopsRouter.put('/sops/:id', requireAuthStrict, ensureSopEditor, async (req, res) => {
   try {
     const { title, category, tags, html, delta, message, is_client, client_name } = req.body || {};
     if (!title || !html) return res.status(400).json({ error: 'title and html are required' });
@@ -239,14 +245,14 @@ sopsRouter.put('/sops/:id', requireAuthOptional, async (req, res) => {
 
     args.push(req.params.id);
 
-    await query(
+    await runQuery(
       `UPDATE sops SET ${fields.join(', ')} WHERE id = $${idx}`,
       args
     );
 
     // Optional: new version record
     if (message || delta) {
-      await query(
+      await runQuery(
         `
         INSERT INTO sop_versions (sop_id, version_no, message, delta, created_at)
         VALUES (
@@ -270,9 +276,9 @@ sopsRouter.put('/sops/:id', requireAuthOptional, async (req, res) => {
  * DELETE /sops/:id
  * (Gate with admin check in middleware or here if needed)
  */
-sopsRouter.delete('/sops/:id', requireAuthOptional, async (req, res) => {
+sopsRouter.delete('/sops/:id', requireAuthStrict, ensureSopEditor, async (req, res) => {
   try {
-    await query(`DELETE FROM sops WHERE id = $1`, [req.params.id]);
+    await runQuery(`DELETE FROM sops WHERE id = $1`, [req.params.id]);
     res.json({ ok: true });
   } catch (e) {
     console.error('DELETE /sops/:id failed:', e);

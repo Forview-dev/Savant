@@ -53,3 +53,13 @@ export function requireAuthStrict(req, res, next) {
   req.user = { email: decoded.sub, role: decoded.role };
   next();
 }
+
+export function requireRole(allowedRoles = []) {
+  return (req, res, next) => {
+    const role = req.user?.role;
+    if (!role || !allowedRoles.includes(role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+}
