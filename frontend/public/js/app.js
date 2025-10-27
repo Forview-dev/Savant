@@ -100,18 +100,12 @@ async function showView(view) {
   const sections = {
     sops: document.getElementById('view-sops'),
     'client-sops': document.getElementById('view-client-sops'),
-    create: document.getElementById('view-create'),
   };
 
   Object.entries(sections).forEach(([key, el]) => {
     if (!el) return;
     el.style.display = view === key ? '' : 'none';
   });
-
-  if (view === 'create') {
-    await ensureQuill(); // lazy-load Quill before initializing editor
-    return;
-  }
 
   if (view === 'sops') {
     await reloadSops();
@@ -126,16 +120,12 @@ async function showView(view) {
 function wireNav() {
   const navLinks = document.querySelectorAll('.nav .nav-link[href="#"]');
   const createButton = document.getElementById('create-sop-button');
-  const createView = createButton?.getAttribute('data-view') || 'create';
 
   const setActive = (view) => {
     navLinks.forEach((link) => {
       const target = link.getAttribute('data-view');
       link.classList.toggle('active', target === view);
     });
-    if (createButton) {
-      createButton.classList.toggle('active', view === createView);
-    }
   };
 
   navLinks.forEach((link) => {
@@ -153,8 +143,7 @@ function wireNav() {
     createButton.addEventListener('click', async (e) => {
       e.preventDefault();
       if (!(await requireAuth())) return;
-      setActive(createView);
-      await showView(createView);
+      window.location.href = '/write.html';
     });
   }
 
@@ -343,143 +332,10 @@ async function reloadClientSops() {
   }
 }
 
-// ---------------- Create Page (Quill) ----------------
-let quill = null;
-let quillLoadingPromise = null;
-
-function ensureStylesheet(href, attrName) {
-  return new Promise((resolve, reject) => {
-    let link = document.querySelector(`link[${attrName}="${href}"]`);
-    if (link) {
-      if (link.sheet) return resolve();
-      link.addEventListener('load', () => resolve(), { once: true });
-      link.addEventListener('error', () => reject(new Error(`Failed to load stylesheet: ${href}`)), { once: true });
-      return;
-    }
-
-    link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    link.setAttribute(attrName, href);
-    link.addEventListener('load', () => resolve(), { once: true });
-    link.addEventListener('error', () => reject(new Error(`Failed to load stylesheet: ${href}`)), { once: true });
-    document.head.appendChild(link);
-  });
-}
-
-function loadQuillAssets() {
-  if (quillLoadingPromise) return quillLoadingPromise;
-  const cssHref = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css';
-  const jsSrc = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';
-
-  quillLoadingPromise = Promise.all([
-    ensureStylesheet(cssHref, 'data-quill-css'),
-    new Promise((resolve, reject) => {
-      if (window.Quill) return resolve();
-      const script = document.createElement('script');
-      script.src = jsSrc;
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load Quill.js'));
-      document.head.appendChild(script);
-    }),
-  ]);
-
-  return quillLoadingPromise;
-}
-
-async function ensureQuill() {
-  if (quill) return;
-  await loadQuillAssets();
-  if (!window.Quill) {
-    alert('Quill failed to load. Check your network and CSP settings.');
-    return;
-  }
-  const editorEl = document.getElementById('editor');
-  if (!editorEl) return;
-
-  quill = new window.Quill('#editor', {
-    theme: 'snow',
-    placeholder: 'Write the SOP content here...',
-    modules: {
-      toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link', 'clean'],
-      ],
-    },
-  });
-
-  const save = document.getElementById('save-sop');
-  const clear = document.getElementById('clear-editor');
-  if (save) save.addEventListener('click', saveSop);
-  if (clear) clear.addEventListener('click', (e) => { e.preventDefault(); clearCreateForm(); });
-}
-
-function readCreateForm() {
-  const title = document.getElementById('sop-title').value.trim();
-  const category = document.getElementById('sop-category').value.trim() || 'General';
-  const tags = document.getElementById('sop-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
-  const delta = quill.getContents();
-  const html = document.querySelector('#editor .ql-editor').innerHTML;
-  const message = document.getElementById('sop-message').value.trim();
-  const isClient = !!document.getElementById('sop-is-client')?.checked;
-  const clientNameRaw = document.getElementById('sop-client-name')?.value.trim() || '';
-  const clientName = isClient ? clientNameRaw : null;
-  return { title, category, tags, delta, html, message, is_client: isClient, client_name: clientName };
-}
-function clearCreateForm() {
-  document.getElementById('sop-title').value = '';
-  document.getElementById('sop-category').value = '';
-  document.getElementById('sop-tags').value = '';
-  document.getElementById('sop-message').value = '';
-  const clientToggle = document.getElementById('sop-is-client');
-  const clientName = document.getElementById('sop-client-name');
-  if (clientToggle) clientToggle.checked = false;
-  if (clientName) clientName.value = '';
-  syncClientFieldsVisibility();
-  if (quill) quill.setContents([]);
-}
-function syncClientFieldsVisibility() {
-  const wrapper = document.getElementById('client-name-wrapper');
-  const toggle = document.getElementById('sop-is-client');
-  if (!wrapper || !toggle) return;
-  wrapper.style.display = toggle.checked ? 'flex' : 'none';
-}
-async function saveSop() {
-  const apiBase = getApiBaseUrl();
-  const payload = readCreateForm();
-  if (!payload.title) return alert('Title is required.');
-  if (payload.is_client && !payload.client_name) return alert('Client name is required for client-specific SOPs.');
-  const res = await fetch(`${apiBase}/sops`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    if (res.status === 401) {
-      const target = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-      window.location.replace(`/login.html?redirect=${target}`);
-      return;
-    }
-    const data = await res.json().catch(() => ({}));
-    return alert(`Save failed: ${data.error || res.status}`);
-  }
-  clearCreateForm();
-  document.querySelector('.nav-menu .nav-link[data-view="sops"]')?.click();
-}
-
 // ---------------- Init ----------------
 async function init() {
   if (!(await requireAuth())) return;
   wireNav();
-  const clientToggle = document.getElementById('sop-is-client');
-  if (clientToggle) {
-    clientToggle.addEventListener('change', syncClientFieldsVisibility);
-    syncClientFieldsVisibility();
-  }
   await showView('sops');
 }
 init();
