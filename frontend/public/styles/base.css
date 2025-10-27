@@ -1024,9 +1024,18 @@ button.danger:hover {
 
 .rich-content ul,
 .rich-content ol {
-    padding-left: 20px;
     display: block;
     margin: 0 0 16px;
+}
+
+.rich-content ul {
+    padding-left: 20px;
+}
+
+.rich-content ol {
+    padding-left: 0;
+    list-style: none;
+    counter-reset: list-0;
 }
 
 .rich-content li {
@@ -1042,52 +1051,130 @@ button.danger:hover {
 }
 
 .rich-content ol > li {
-    list-style-type: decimal;
+    position: relative;
+    padding-left: 32px;
+    counter-increment: list-0;
+    counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-content ol > li::before {
+    content: counter(list-0, decimal) ".";
+    position: absolute;
+    inset-inline-start: 0;
+    min-width: 24px;
+    text-align: end;
+    color: rgba(79, 70, 229, 0.7);
+    font-variant-numeric: tabular-nums;
+}
+
+.rich-content ol > li.ql-direction-rtl {
+    padding-left: 0;
+    padding-right: 32px;
+}
+
+.rich-content ol > li.ql-direction-rtl::before {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    text-align: start;
 }
 
 .rich-content ol > li.ql-indent-1,
 .rich-content ol > li.ql-indent-1.ql-direction-rtl {
-    list-style-type: lower-alpha;
+    counter-increment: list-1;
+    counter-reset: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-1::before,
+.rich-content ol > li.ql-indent-1.ql-direction-rtl::before {
+    content: counter(list-1, lower-alpha) ".";
 }
 
 .rich-content ol > li.ql-indent-2,
 .rich-content ol > li.ql-indent-2.ql-direction-rtl {
-    list-style-type: lower-roman;
+    counter-increment: list-2;
+    counter-reset: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-2::before,
+.rich-content ol > li.ql-indent-2.ql-direction-rtl::before {
+    content: counter(list-2, lower-roman) ".";
 }
 
 .rich-content ol > li.ql-indent-3,
 .rich-content ol > li.ql-indent-3.ql-direction-rtl {
-    list-style-type: decimal;
+    counter-increment: list-3;
+    counter-reset: list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-3::before,
+.rich-content ol > li.ql-indent-3.ql-direction-rtl::before {
+    content: counter(list-3, decimal) ".";
 }
 
 .rich-content ol > li.ql-indent-4,
 .rich-content ol > li.ql-indent-4.ql-direction-rtl {
-    list-style-type: lower-alpha;
+    counter-increment: list-4;
+    counter-reset: list-5 list-6 list-7 list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-4::before,
+.rich-content ol > li.ql-indent-4.ql-direction-rtl::before {
+    content: counter(list-4, lower-alpha) ".";
 }
 
 .rich-content ol > li.ql-indent-5,
 .rich-content ol > li.ql-indent-5.ql-direction-rtl {
-    list-style-type: lower-roman;
+    counter-increment: list-5;
+    counter-reset: list-6 list-7 list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-5::before,
+.rich-content ol > li.ql-indent-5.ql-direction-rtl::before {
+    content: counter(list-5, lower-roman) ".";
 }
 
 .rich-content ol > li.ql-indent-6,
 .rich-content ol > li.ql-indent-6.ql-direction-rtl {
-    list-style-type: decimal;
+    counter-increment: list-6;
+    counter-reset: list-7 list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-6::before,
+.rich-content ol > li.ql-indent-6.ql-direction-rtl::before {
+    content: counter(list-6, decimal) ".";
 }
 
 .rich-content ol > li.ql-indent-7,
 .rich-content ol > li.ql-indent-7.ql-direction-rtl {
-    list-style-type: lower-alpha;
+    counter-increment: list-7;
+    counter-reset: list-8 list-9;
+}
+
+.rich-content ol > li.ql-indent-7::before,
+.rich-content ol > li.ql-indent-7.ql-direction-rtl::before {
+    content: counter(list-7, lower-alpha) ".";
 }
 
 .rich-content ol > li.ql-indent-8,
 .rich-content ol > li.ql-indent-8.ql-direction-rtl {
-    list-style-type: lower-roman;
+    counter-increment: list-8;
+    counter-reset: list-9;
+}
+
+.rich-content ol > li.ql-indent-8::before,
+.rich-content ol > li.ql-indent-8.ql-direction-rtl::before {
+    content: counter(list-8, lower-roman) ".";
 }
 
 .rich-content ol > li.ql-indent-9,
 .rich-content ol > li.ql-indent-9.ql-direction-rtl {
-    list-style-type: decimal;
+    counter-increment: list-9;
+    counter-reset: none;
+}
+
+.rich-content ol > li.ql-indent-9::before,
+.rich-content ol > li.ql-indent-9.ql-direction-rtl::before {
+    content: counter(list-9, decimal) ".";
 }
 
 .rich-content .ql-indent-1:not(.ql-direction-rtl) {
