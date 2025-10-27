@@ -227,10 +227,120 @@
     gap: 12px;
 }
 
+#save-sop {
+    position: relative;
+    overflow: hidden;
+    padding-right: 52px;
+    transition: transform var(--transition), box-shadow var(--transition), filter var(--transition), background 0.35s ease;
+}
+
+#save-sop::before,
+#save-sop::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+#save-sop::before {
+    left: 50%;
+    right: auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    transform: translate(-50%, -50%) scale(0);
+}
+
+#save-sop.is-saving {
+    cursor: progress;
+    filter: brightness(0.98);
+}
+
+#save-sop.is-saving::after {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-right-color: #fff;
+    opacity: 1;
+    animation: button-spinner 0.8s linear infinite;
+}
+
+#save-sop.is-success {
+    background: linear-gradient(135deg, #34d399, #059669);
+    box-shadow: 0 16px 28px rgba(16, 185, 129, 0.28);
+    transform: translateY(-1px) scale(1.01);
+}
+
+#save-sop.is-success::after {
+    content: "✓";
+    font-size: 16px;
+    font-weight: 700;
+    opacity: 1;
+    animation: success-check 0.6s ease-out forwards;
+}
+
+#save-sop.is-success::before {
+    opacity: 1;
+    animation: success-wave 0.7s ease-out;
+}
+
 .create-sidebar {
     display: flex;
     flex-direction: column;
     gap: 18px;
+}
+
+@keyframes button-spinner {
+    from {
+        transform: translateY(-50%) rotate(0deg);
+    }
+
+    to {
+        transform: translateY(-50%) rotate(360deg);
+    }
+}
+
+@keyframes success-check {
+    0% {
+        transform: translateY(-50%) scale(0.5);
+        opacity: 0;
+    }
+
+    40% {
+        transform: translateY(-50%) scale(1.2);
+        opacity: 1;
+    }
+
+    70% {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    100% {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes success-wave {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0.45;
+    }
+
+    80% {
+        opacity: 0.2;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(3.2);
+        opacity: 0;
+    }
 }
 
 .create-tips-card {
