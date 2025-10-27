@@ -70,7 +70,9 @@ function renderUserPill(user) {
   if (!pill) return;
 
   const roleClass = `role-${(user.role || 'viewer').toLowerCase()}`;
-  const roleName = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Viewer';
+  const roleName = user.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : 'Viewer';
 
   const emailSpan = document.createElement('span');
   emailSpan.textContent = user.email || '';
@@ -98,7 +100,11 @@ let usingFallbackTextarea = false;
 function ensureQuillCss() {
   const href = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css';
   const already = Array.from(document.styleSheets || []).some((ss) => {
-    try { return ss.href && ss.href.includes('quill.snow.css'); } catch { return false; }
+    try {
+      return ss.href && ss.href.includes('quill.snow.css');
+    } catch {
+      return false;
+    }
   }) || !!document.querySelector(`link[rel="stylesheet"][href*="quill.snow.css"]`);
   if (already) return;
   const link = document.createElement('link');
@@ -129,7 +135,9 @@ function renderFallbackTextarea() {
   if (!editorHost) return;
   editorHost.classList.remove('quill');
   editorHost.innerHTML = `
-    <textarea id="editor-fallback" class="fallback-textarea" style="width:100%; min-height:320px; padding:12px; border:1px solid rgba(226,232,240,0.7); border-radius:12px;"></textarea>
+    <textarea id="editor-fallback" class="fallback-textarea"
+      style="width:100%; min-height:320px; padding:12px; border:1px solid rgba(226,232,240,0.7); border-radius:12px;">
+    </textarea>
   `;
 }
 
@@ -138,7 +146,7 @@ async function initEditor() {
   const editorEl = document.getElementById('editor');
   if (!editorEl) {
     console.error('#editor element missing');
-    setStatus('Conteneur de l\'editeur introuvable.', true);
+    setStatus("Conteneur de l'editeur introuvable.", true);
     return;
   }
 
@@ -146,14 +154,14 @@ async function initEditor() {
     await loadQuill();
   } catch (err) {
     console.warn('Failed to load Quill, falling back to textarea.', err);
-    setStatus('Editeur enrichi indisponible. Utilisation d\'un textarea simplifie.', true);
+    setStatus("Editeur enrichi indisponible. Utilisation d'un textarea simplifie.", true);
     renderFallbackTextarea();
     return;
   }
 
   if (!window.Quill) {
     console.warn('window.Quill absent after load; using fallback textarea.');
-    setStatus('Editeur enrichi indisponible. Utilisation d\'un textarea simplifie.', true);
+    setStatus("Editeur enrichi indisponible. Utilisation d'un textarea simplifie.", true);
     renderFallbackTextarea();
     return;
   }
@@ -207,10 +215,14 @@ function readForm() {
 }
 
 function clearForm() {
-  document.getElementById('sop-title')?.value = '';
-  document.getElementById('sop-category')?.value = '';
-  document.getElementById('sop-tags')?.value = '';
-  document.getElementById('sop-message')?.value = '';
+  const titleEl = document.getElementById('sop-title');
+  if (titleEl) titleEl.value = '';
+  const categoryEl = document.getElementById('sop-category');
+  if (categoryEl) categoryEl.value = '';
+  const tagsEl = document.getElementById('sop-tags');
+  if (tagsEl) tagsEl.value = '';
+  const messageEl = document.getElementById('sop-message');
+  if (messageEl) messageEl.value = '';
   const toggle = document.getElementById('sop-is-client');
   if (toggle) toggle.checked = false;
   const clientName = document.getElementById('sop-client-name');
@@ -240,7 +252,7 @@ async function requireAuth() {
     return false;
   }
   if (!(user.role === 'admin' || user.role === 'editor')) {
-    alert('Vous n\'avez pas la permission de creer un SOP.');
+    alert("Vous n'avez pas la permission de creer un SOP.");
     window.location.replace('/');
     return false;
   }
@@ -301,7 +313,7 @@ function bindInteractions() {
       }
     }
   });
-};
+}
 
 (async function init() {
   if (!(await requireAuth())) return;
