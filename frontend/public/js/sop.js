@@ -181,7 +181,7 @@ function renderActions(id) {
 
   buttons.push(`
     <a class="sop-action-link" href="/">
-      <button class="ghost" id="back-dashboard" title="Retour au tableau de bord">← Tableau</button>
+      <button class="ghost" id="back-dashboard" title="Retour au tableau de bord">←</button>
     </a>
   `);
 
