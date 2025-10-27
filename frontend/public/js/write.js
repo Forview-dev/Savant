@@ -17,7 +17,8 @@ function getApiBaseUrl() {
   }
 
   if (window.location.protocol === 'https:') {
-    return window.location.origin;
+    // Default to the same-origin Cloudflare Pages Function proxy
+    return window.location.origin.replace(/\/$/, '') + '/api';
   }
 
   return FALLBACK_LOCAL_API;
