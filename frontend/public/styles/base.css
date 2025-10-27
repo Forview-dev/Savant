@@ -71,19 +71,24 @@ body>* {
 
 /* Header */
 .site-header {
-    background: transparent;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(22px);
+    box-shadow: var(--shadow-soft);
     border-bottom: none;
+    z-index: 100;
 }
 
 .header-inner {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(22px);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
+    max-width: 1180px;
+    margin: 0 auto;
     padding: 26px 36px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 24px;
 }
 
 .site-header h1 {
