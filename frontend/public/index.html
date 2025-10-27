@@ -62,20 +62,29 @@
 
         <!-- Client SOPs View -->
         <section id="view-client-sops" style="display:none;">
-            <h2>Client specs.</h2>
-            <div class="card">
-                <div class="row" style="flex-wrap: wrap; gap: 16px;">
-                    <div style="display:flex; flex-direction:column;">
+            <section class="card sop-hero search-hero">
+                <div class="search-hero__header">
+                    <div class="sop-hero__eyebrow">Clients</div>
+                    <h2 class="sop-hero__title">Rechercher un SOP client</h2>
+                    <p class="search-hero__subtitle">
+                        Filtrez par mots-clés ou par nom de client pour retrouver une procédure dédiée.
+                    </p>
+                </div>
+
+                <div class="search-hero__form">
+                    <div class="search-hero__field">
+                        <label for="client-filter-q" class="search-hero__label">Mots-clés</label>
                         <input id="client-filter-q" type="text" placeholder="Rechercher SOP ..." />
                     </div>
-                    <div style="display:flex; flex-direction:column;">
+                    <div class="search-hero__field">
+                        <label for="client-filter-name" class="search-hero__label">Nom du client</label>
                         <input id="client-filter-name" type="text" placeholder="Nom du client..." />
                     </div>
-                    <div style="display:flex; align-items:flex-end;">
+                    <div class="search-hero__actions">
                         <button id="client-apply-filters" onclick="applyClientFilters()">Appliquer</button>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <div id="client-sop-tiles" class="tile-grid" style="margin-top:20px;">
                 <!-- Client SOP tiles rendered dynamically -->
