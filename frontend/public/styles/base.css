@@ -576,31 +576,36 @@ button.danger:hover {
 
 .tile {
     position: relative;
-    background: linear-gradient(165deg, #ffffff, #f5f7ff 80%);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 255, 0.86));
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    border-radius: 20px;
     padding: 24px 26px 22px;
     cursor: pointer;
     transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
     overflow: hidden;
 }
 
 .tile::before {
     content: "";
     position: absolute;
-    inset: 15px auto auto 15px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: rgba(81, 97, 255, 0.12);
-    filter: blur(0.5px);
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(120deg, rgba(81, 97, 255, 0.14), rgba(255, 255, 255, 0) 60%);
+    opacity: 0.75;
+    pointer-events: none;
+    transition: opacity var(--transition);
 }
 
 .tile:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
-    border-color: rgba(81, 97, 255, 0.35);
+    border-color: rgba(81, 97, 255, 0.28);
+}
+
+.tile:hover::before {
+    opacity: 1;
 }
 
 .tile>* {
