@@ -40,7 +40,7 @@ async function fetchMe() {
   }
 }
 
-function startLoginPolling() {
+function startLoginPolling(onExpired) {
   const started = Date.now();
   const maxMs = 2 * 60 * 1000;
   const msg = document.getElementById('login-msg');
@@ -54,6 +54,7 @@ function startLoginPolling() {
     }
     if (Date.now() - started > maxMs) {
       if (msg) msg.textContent = 'Magic link expired or not used yet. Try again.';
+      if (typeof onExpired === 'function') onExpired();
       clearInterval(timer);
     }
   }
@@ -73,6 +74,7 @@ async function init() {
   const form = document.getElementById('login-form');
   const btn = document.getElementById('login-btn');
   const msg = document.getElementById('login-msg');
+  const wait = document.getElementById('magic-wait');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -92,9 +94,22 @@ async function init() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       if (msg) msg.textContent = `Link sent to ${email}. After you click it, you’ll be redirected automatically.`;
-      startLoginPolling();
+      if (wait) {
+        wait.classList.add('is-active');
+        wait.setAttribute('aria-hidden', 'false');
+      }
+      startLoginPolling(() => {
+        if (wait) {
+          wait.classList.remove('is-active');
+          wait.setAttribute('aria-hidden', 'true');
+        }
+      });
     } catch (err) {
       if (msg) msg.textContent = `Error: ${err.message || err}`;
+      if (wait) {
+        wait.classList.remove('is-active');
+        wait.setAttribute('aria-hidden', 'true');
+      }
     } finally {
       btn.disabled = false;
     }

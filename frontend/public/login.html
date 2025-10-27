@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="api-base-url" content="/api" />
     <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/login.css" />
 </head>
 
 <body>
@@ -47,6 +48,25 @@
                 </form>
 
                 <p id="login-msg" class="muted auth-card__message" role="status" aria-live="polite"></p>
+
+                <div id="magic-wait" class="magic-wait" aria-hidden="true">
+                    <div class="magic-wait__backdrop"></div>
+                    <div class="magic-wait__inner">
+                        <div class="magic-wait__icon" aria-hidden="true">
+                            <span class="magic-wait__spark magic-wait__spark--one"></span>
+                            <span class="magic-wait__spark magic-wait__spark--two"></span>
+                            <span class="magic-wait__spark magic-wait__spark--three"></span>
+                            <div class="magic-wait__envelope">
+                                <div class="magic-wait__envelope-flap"></div>
+                                <div class="magic-wait__envelope-body"></div>
+                            </div>
+                        </div>
+                        <div class="magic-wait__text">
+                            <h3>Nous préparons votre lien magique…</h3>
+                            <p class="muted">Restez sur cette page&nbsp;: nous détecterons automatiquement votre connexion dès que vous aurez cliqué sur le mail.</p>
+                        </div>
+                    </div>
+                </div>
 
                 <p class="auth-card__help muted">Besoin d'aide ? Contactez l'équipe ttom pour vérifier vos accès.</p>
             </div>
