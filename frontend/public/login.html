@@ -16,18 +16,41 @@
         </div>
     </header>
 
-    <main class="container">
-        <div class="card">
-            <h2>Sign in</h2>
-            <p class="muted">Entrez votre adresse mail de travail.</p>
+    <main class="container auth-container">
+        <section class="card auth-card">
+            <div class="auth-card__intro">
+                <div class="auth-card__intro-text">
+                    <div class="auth-card__eyebrow">Bienvenue</div>
+                    <h2 class="auth-card__title">Retrouvez vos SOPs en un clin d'œil</h2>
+                    <p class="auth-card__subtitle">
+                        Savant! centralise les procédures de l'équipe et vous guide vers les dernières mises à jour
+                        en un seul endroit.
+                    </p>
+                </div>
+                <ul class="auth-card__highlights">
+                    <li>Tableau de bord clair pour vos SOPs clés</li>
+                    <li>Historique des versions et messages associés</li>
+                    <li>Filtres intelligents pour les recherches rapides</li>
+                </ul>
+            </div>
 
-            <form id="login-form" class="row" autocomplete="email">
-                <label for="email" style="min-width:120px;">Email</label>
-                <input id="email" name="email" type="email" placeholder="you@company.com" required />
-                <button id="login-btn" type="submit">Demander lien d'accès</button>
-            </form>
-            <p id="login-msg" class="muted"></p>
-        </div>
+            <div class="auth-card__form">
+                <div class="auth-card__form-header">
+                    <h2>Connexion sécurisée</h2>
+                    <p class="muted">Entrez votre adresse mail de travail pour recevoir un lien d'accès.</p>
+                </div>
+
+                <form id="login-form" class="auth-form" autocomplete="email">
+                    <label class="auth-form__label" for="email">Email professionnel</label>
+                    <input id="email" name="email" type="email" placeholder="you@company.com" required />
+                    <button id="login-btn" type="submit">Demander le lien d'accès</button>
+                </form>
+
+                <p id="login-msg" class="muted auth-card__message" role="status" aria-live="polite"></p>
+
+                <p class="auth-card__help muted">Besoin d'aide ? Contactez l'équipe ttom pour vérifier vos accès.</p>
+            </div>
+        </section>
     </main>
 
     <script type="module" src="/js/login.js"></script>
