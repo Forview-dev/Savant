@@ -27,22 +27,33 @@
     <main class="container">
         <!-- SOPs View -->
         <section id="view-sops">
-            <div class="card">
-                <div class="row" style="flex-wrap: wrap; gap: 16px;">
-                    <div style="display:flex; flex-direction:column;">
+            <section class="card sop-hero search-hero">
+                <div class="search-hero__header">
+                    <div class="sop-hero__eyebrow">Tableau de bord</div>
+                    <h2 class="sop-hero__title">Rechercher un SOP</h2>
+                    <p class="search-hero__subtitle">
+                        Filtrez par mots-clés, catégorie ou tags pour trouver rapidement la bonne procédure.
+                    </p>
+                </div>
+
+                <div class="search-hero__form">
+                    <div class="search-hero__field">
+                        <label for="filter-q" class="search-hero__label">Mots-clés</label>
                         <input id="filter-q" type="text" placeholder="Rechercher SOP ..." />
                     </div>
-                    <div style="display:flex; flex-direction:column;">
+                    <div class="search-hero__field">
+                        <label for="filter-category" class="search-hero__label">Catégorie</label>
                         <input id="filter-category" type="text" placeholder="Catégorie ..." />
                     </div>
-                    <div style="display:flex; flex-direction:column;">
+                    <div class="search-hero__field">
+                        <label for="filter-tags" class="search-hero__label">Tags</label>
                         <input id="filter-tags" type="text" placeholder="Tags (séparateur: ,)" />
                     </div>
-                    <div style="display:flex; align-items:flex-end;">
+                    <div class="search-hero__actions">
                         <button id="apply-filters" onclick="applyFilters()">Appliquer</button>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <div id="sop-tiles" class="tile-grid" style="margin-top:20px;">
                 <!-- SOP tiles rendered dynamically -->
