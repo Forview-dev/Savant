@@ -138,7 +138,7 @@ async function initEditor() {
   const editorEl = document.getElementById('editor');
   if (!editorEl) {
     console.error('#editor element missing');
-    setStatus('Conteneur de l’éditeur introuvable.', true);
+    setStatus('Conteneur de l\'editeur introuvable.', true);
     return;
   }
 
@@ -146,14 +146,14 @@ async function initEditor() {
     await loadQuill();
   } catch (err) {
     console.warn('Failed to load Quill, falling back to textarea.', err);
-    setStatus('Éditeur enrichi indisponible. Utilisation d’un textarea simplifié.', true);
+    setStatus('Editeur enrichi indisponible. Utilisation d\'un textarea simplifie.', true);
     renderFallbackTextarea();
     return;
   }
 
   if (!window.Quill) {
     console.warn('window.Quill absent after load; using fallback textarea.');
-    setStatus('Éditeur enrichi indisponible. Utilisation d’un textarea simplifié.', true);
+    setStatus('Editeur enrichi indisponible. Utilisation d\'un textarea simplifie.', true);
     renderFallbackTextarea();
     return;
   }
@@ -240,7 +240,7 @@ async function requireAuth() {
     return false;
   }
   if (!(user.role === 'admin' || user.role === 'editor')) {
-    alert('Vous n’avez pas la permission de créer un SOP.');
+    alert('Vous n\'avez pas la permission de creer un SOP.');
     window.location.replace('/');
     return false;
   }
@@ -301,7 +301,7 @@ function bindInteractions() {
       }
     }
   });
-}
+};
 
 (async function init() {
   if (!(await requireAuth())) return;
