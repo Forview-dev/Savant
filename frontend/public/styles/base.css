@@ -358,6 +358,7 @@ body>* {
 .auth-container {
     margin-top: 60px;
     margin-bottom: 60px;
+    max-width: 900px;
 }
 
 .auth-card {
@@ -368,7 +369,7 @@ body>* {
 
 .auth-card__intro {
     flex: 1 1 45%;
-    padding: 48px 44px;
+    padding: 32px 32px 36px;
     background: radial-gradient(circle at top left, rgba(81, 97, 255, 0.25), transparent 55%),
         radial-gradient(circle at bottom right, rgba(58, 123, 213, 0.22), transparent 60%),
         linear-gradient(165deg, rgba(82, 93, 255, 0.92), rgba(58, 69, 210, 0.94));
@@ -376,13 +377,40 @@ body>* {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 36px;
+    gap: 28px;
+}
+
+.auth-card__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.auth-card__brand-mark {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.4px;
+    color: #ffffff;
+}
+
+.auth-card__brand-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
 }
 
 .auth-card__intro-text {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
 }
 
 .auth-card__eyebrow {
@@ -395,7 +423,7 @@ body>* {
 
 .auth-card__title {
     margin: 0;
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1.2;
     color: #ffffff;
     text-shadow: 0 16px 28px rgba(26, 32, 92, 0.38);
@@ -441,15 +469,15 @@ body>* {
 
 .auth-card__form {
     flex: 1 1 55%;
-    padding: 48px 56px;
+    padding: 32px 40px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 24px;
 }
 
 .auth-card__form-header h2 {
     margin: 0;
-    font-size: 26px;
+    font-size: 24px;
 }
 
 .auth-form {
