@@ -94,6 +94,18 @@ let quill = null;
 let quillLoadingPromise = null;
 let usingFallbackTextarea = false;
 
+function ensureQuillCss() {
+  const href = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css';
+  const already = Array.from(document.styleSheets || []).some((ss) => {
+    try { return ss.href && ss.href.includes('quill.snow.css'); } catch { return false; }
+  }) || !!document.querySelector(`link[rel="stylesheet"][href*="quill.snow.css"]`);
+  if (already) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+}
+
 function loadQuill() {
   if (quillLoadingPromise) return quillLoadingPromise;
   if (window.Quill) return Promise.resolve();
@@ -121,6 +133,7 @@ function renderFallbackTextarea() {
 }
 
 async function initEditor() {
+  ensureQuillCss();
   const editorEl = document.getElementById('editor');
   if (!editorEl) {
     console.error('#editor element missing');
