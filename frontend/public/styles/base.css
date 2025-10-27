@@ -1041,6 +1041,55 @@ button.danger:hover {
     color: rgba(79, 70, 229, 0.7);
 }
 
+.rich-content ol > li {
+    list-style-type: decimal;
+}
+
+.rich-content ol > li.ql-indent-1,
+.rich-content ol > li.ql-indent-1.ql-direction-rtl {
+    list-style-type: lower-alpha;
+}
+
+.rich-content ol > li.ql-indent-2,
+.rich-content ol > li.ql-indent-2.ql-direction-rtl {
+    list-style-type: lower-roman;
+}
+
+.rich-content ol > li.ql-indent-3,
+.rich-content ol > li.ql-indent-3.ql-direction-rtl {
+    list-style-type: decimal;
+}
+
+.rich-content ol > li.ql-indent-4,
+.rich-content ol > li.ql-indent-4.ql-direction-rtl {
+    list-style-type: lower-alpha;
+}
+
+.rich-content ol > li.ql-indent-5,
+.rich-content ol > li.ql-indent-5.ql-direction-rtl {
+    list-style-type: lower-roman;
+}
+
+.rich-content ol > li.ql-indent-6,
+.rich-content ol > li.ql-indent-6.ql-direction-rtl {
+    list-style-type: decimal;
+}
+
+.rich-content ol > li.ql-indent-7,
+.rich-content ol > li.ql-indent-7.ql-direction-rtl {
+    list-style-type: lower-alpha;
+}
+
+.rich-content ol > li.ql-indent-8,
+.rich-content ol > li.ql-indent-8.ql-direction-rtl {
+    list-style-type: lower-roman;
+}
+
+.rich-content ol > li.ql-indent-9,
+.rich-content ol > li.ql-indent-9.ql-direction-rtl {
+    list-style-type: decimal;
+}
+
 .rich-content .ql-indent-1:not(.ql-direction-rtl) {
     margin-left: 24px;
 }
