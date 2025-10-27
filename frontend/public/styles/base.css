@@ -780,6 +780,58 @@ button.danger:hover {
     margin-top: 28px;
 }
 
+.search-hero {
+    display: grid;
+    gap: 28px;
+}
+
+.search-hero__header {
+    max-width: 560px;
+}
+
+.search-hero__subtitle {
+    margin: 18px 0 0;
+    color: rgba(71, 85, 105, 0.85);
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+.search-hero__form {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    background: rgba(255, 255, 255, 0.86);
+    border-radius: 18px;
+    padding: 26px 28px;
+    border: 1px solid rgba(226, 232, 240, 0.65);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+}
+
+.search-hero__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-hero__label {
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(79, 70, 229, 0.78);
+}
+
+.search-hero__actions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.search-hero__actions button {
+    min-width: 180px;
+}
+
 .badge-muted {
     background: rgba(148, 163, 184, 0.22);
     border-color: rgba(148, 163, 184, 0.32);
@@ -956,6 +1008,10 @@ button.danger:hover {
     .sop-meta-chip {
         min-width: 150px;
     }
+
+    .search-hero__form {
+        padding: 22px 24px;
+    }
 }
 
 @media (max-width: 640px) {
@@ -1016,6 +1072,23 @@ button.danger:hover {
 
     .rich-content {
         font-size: 15px;
+    }
+
+    .search-hero {
+        gap: 24px;
+    }
+
+    .search-hero__form {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .search-hero__actions {
+        justify-content: stretch;
+    }
+
+    .search-hero__actions button {
+        width: 100%;
     }
 }
 
