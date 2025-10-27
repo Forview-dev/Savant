@@ -36,6 +36,12 @@
     padding: 22px 24px;
 }
 
+.magic-wait__text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .magic-wait__icon {
     position: relative;
     width: 72px;
