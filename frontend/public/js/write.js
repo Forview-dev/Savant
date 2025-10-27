@@ -96,6 +96,49 @@ function renderUserPill(user) {
 let quill = null;
 let quillLoadingPromise = null;
 let usingFallbackTextarea = false;
+let saveButtonResetTimeout = null;
+
+function setSaveButtonState(state) {
+  const button = document.getElementById('save-sop');
+  if (!button) return;
+
+  if (saveButtonResetTimeout) {
+    clearTimeout(saveButtonResetTimeout);
+    saveButtonResetTimeout = null;
+  }
+
+  if (!button.dataset.originalText) {
+    button.dataset.originalText = button.textContent || 'Sauvegarder';
+  }
+
+  if (state === 'saving') {
+    button.disabled = true;
+    button.classList.remove('is-success');
+    button.classList.add('is-saving');
+    button.textContent = 'Sauvegarde…';
+    return;
+  }
+
+  if (state === 'success') {
+    button.disabled = false;
+    button.classList.remove('is-saving');
+    button.classList.remove('is-success');
+    // Force reflow so the success animation can replay on consecutive saves.
+    void button.offsetWidth;
+    button.classList.add('is-success');
+    button.textContent = 'SOP créé !';
+    saveButtonResetTimeout = setTimeout(() => {
+      button.classList.remove('is-success');
+      button.textContent = button.dataset.originalText || 'Sauvegarder';
+    }, 1600);
+    return;
+  }
+
+  button.disabled = false;
+  button.classList.remove('is-saving');
+  button.classList.remove('is-success');
+  button.textContent = button.dataset.originalText || 'Sauvegarder';
+}
 
 function ensureQuillCss() {
   const href = 'https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css';
@@ -273,6 +316,7 @@ async function saveSop(event) {
     return;
   }
 
+  setSaveButtonState('saving');
   setStatus('Sauvegarde en cours…');
   const apiBase = getApiBaseUrl();
 
@@ -291,9 +335,11 @@ async function saveSop(event) {
 
     clearForm();
     setStatus('SOP sauvegardé avec succès. Vous pouvez en créer un autre !');
+    setSaveButtonState('success');
   } catch (err) {
     console.error('Failed to save SOP', err);
     setStatus(`Impossible de sauvegarder le SOP : ${err.message}`, true);
+    setSaveButtonState('idle');
   }
 }
 
