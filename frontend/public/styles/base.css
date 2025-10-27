@@ -355,21 +355,28 @@ body>* {
     flex-wrap: wrap;
 }
 
+
 .auth-container {
-    margin-top: 60px;
-    margin-bottom: 60px;
+    margin: 0 auto;
     max-width: 900px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(24px, 6vh, 60px) 24px;
 }
 
 .auth-card {
     display: flex;
     padding: 0;
     overflow: hidden;
+    width: 100%;
+    max-height: min(90vh, 760px);
 }
 
 .auth-card__intro {
     flex: 1 1 45%;
-    padding: 32px 32px 36px;
+    padding: clamp(24px, 3vw, 32px);
     background: radial-gradient(circle at top left, rgba(81, 97, 255, 0.25), transparent 55%),
         radial-gradient(circle at bottom right, rgba(58, 123, 213, 0.22), transparent 60%),
         linear-gradient(165deg, rgba(82, 93, 255, 0.92), rgba(58, 69, 210, 0.94));
@@ -377,7 +384,7 @@ body>* {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 28px;
+    gap: clamp(20px, 4vh, 28px);
 }
 
 .auth-card__brand {
@@ -410,7 +417,7 @@ body>* {
 .auth-card__intro-text {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: clamp(10px, 2.2vh, 14px);
 }
 
 .auth-card__eyebrow {
@@ -442,14 +449,14 @@ body>* {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: clamp(10px, 2vh, 12px);
 }
 
 .auth-card__highlights li {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -469,10 +476,10 @@ body>* {
 
 .auth-card__form {
     flex: 1 1 55%;
-    padding: 32px 40px;
+    padding: clamp(28px, 4vw, 40px) clamp(24px, 4vw, 40px);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: clamp(18px, 3vh, 24px);
 }
 
 .auth-card__form-header h2 {
@@ -512,6 +519,59 @@ body>* {
 
 .auth-card__help {
     margin: 0;
+}
+
+@media (max-height: 820px) {
+    .auth-card {
+        max-height: 84vh;
+    }
+
+    .auth-card__intro,
+    .auth-card__form {
+        padding: 24px;
+    }
+
+    .auth-card__title {
+        font-size: 26px;
+    }
+
+    .auth-card__subtitle {
+        font-size: 14px;
+    }
+
+    .auth-card__highlights li {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-height: 760px) {
+    .auth-card__intro,
+    .auth-card__form {
+        padding: 20px 22px;
+    }
+
+    .auth-card__brand-mark {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .auth-card__brand-text {
+        font-size: 18px;
+    }
+
+    .auth-card__title {
+        font-size: 24px;
+    }
+
+    .auth-card__highlights li {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .auth-card__form-header h2 {
+        font-size: 22px;
+    }
 }
 
 input[type="text"],
