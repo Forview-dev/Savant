@@ -3,10 +3,11 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Savant! — Create SOP</title>
+    <title>Savant! — Nouveau SOP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="api-base-url" content="/api" />
     <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/write.css" />
     <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet" />
 </head>
 
@@ -18,43 +19,129 @@
         </div>
     </header>
 
-    <main class="container">
-        <div class="card">
-            <h2>Créer un nouveau SOP</h2>
-            <div class="row" style="flex-wrap: wrap; gap: 16px;">
-                <div style="display:flex; flex-direction:column;">
-                    <label for="sop-title" class="muted">Titre</label>
-                    <input id="sop-title" type="text" placeholder="SOP Title" />
-                </div>
-                <div style="display:flex; flex-direction:column;">
-                    <label for="sop-category" class="muted">Catégorie</label>
-                    <input id="sop-category" type="text" placeholder="Category" />
-                </div>
-                <div style="display:flex; flex-direction:column;">
-                    <label for="sop-tags" class="muted">Tags</label>
-                    <input id="sop-tags" type="text" placeholder="Tags (comma-separated)" />
-                </div>
-            </div>
-
-            <div style="margin-top:20px;">
-                <label for="editor" class="muted">Contenu</label>
-                <div id="editor" class="quill" style="margin-top:8px;"></div>
-            </div>
-
-            <div class="row" style="margin-top:20px;">
-                <div style="display:flex; flex-direction:column; flex:1;">
-                    <label for="sop-message" class="muted">Notes de version</label>
-                    <input id="sop-message" type="text" placeholder="Describe this version..." />
-                </div>
-                <div style="display:flex; align-items:flex-end; gap:10px;">
-                    <button id="save-sop">Sauvegarder</button>
-                    <button id="clear-editor" class="ghost">Annuler</button>
-                </div>
-            </div>
+    <main class="container create-page">
+        <div class="action-bar">
+            <a href="/"><button class="ghost" type="button">← Retour</button></a>
+            <span class="action-bar__hint">Vos modifications ne sont enregistrées qu'après avoir cliqué sur «&nbsp;Sauvegarder&nbsp;».</span>
         </div>
+
+        <section class="card sop-hero create-hero">
+            <div class="create-hero__content">
+                <div class="sop-hero__eyebrow">Nouveau SOP</div>
+                <h2 class="sop-hero__title">Construisez une procédure claire et actionnable</h2>
+                <p class="create-hero__subtitle">
+                    Rassemblez le contexte, les objectifs et les étapes clés pour aider l'équipe à exécuter la tâche sans
+                    hésitation. Utilisez les champs ci-dessous pour catégoriser et mettre en valeur votre SOP.
+                </p>
+            </div>
+            <ul class="create-hero__checklist">
+                <li>
+                    <span class="check-icon">✓</span>
+                    <div>
+                        <strong>Commencez par le titre.</strong>
+                        Rendez-le explicite pour que la procédure soit facile à retrouver.
+                    </div>
+                </li>
+                <li>
+                    <span class="check-icon">✓</span>
+                    <div>
+                        <strong>Ajoutez le contexte.</strong>
+                        Décrivez les prérequis et les responsables directement dans le contenu.
+                    </div>
+                </li>
+                <li>
+                    <span class="check-icon">✓</span>
+                    <div>
+                        <strong>Utilisez les tags.</strong>
+                        Ils permettent de filtrer rapidement depuis le tableau de bord.
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="create-layout">
+            <div class="card create-form-card">
+                <div class="create-form__header">
+                    <h2>Paramètres du SOP</h2>
+                    <p>Complétez les métadonnées avant de rédiger le contenu détaillé.</p>
+                </div>
+
+                <p id="create-status" class="inline-status" style="display:none;" role="status" aria-live="polite"></p>
+
+                <div class="create-form__grid">
+                    <div class="input-field">
+                        <label for="sop-title">Titre du SOP</label>
+                        <input id="sop-title" type="text" placeholder="Ex. Process d'onboarding" />
+                        <p class="field-hint">Visible sur les cartes et dans les résultats de recherche.</p>
+                    </div>
+                    <div class="input-field">
+                        <label for="sop-category">Catégorie</label>
+                        <input id="sop-category" type="text" placeholder="Ex. Ressources humaines" />
+                        <p class="field-hint">Permet de regrouper les SOPs par domaine.</p>
+                    </div>
+                    <div class="input-field">
+                        <label for="sop-tags">Tags</label>
+                        <input id="sop-tags" type="text" placeholder="Ex. onboarding, welcome" />
+                        <p class="field-hint">Séparez les tags par des virgules.</p>
+                    </div>
+                </div>
+
+                <div class="create-form__toggles">
+                    <div class="input-toggle">
+                        <input id="sop-is-client" type="checkbox" />
+                        <label for="sop-is-client">SOP client</label>
+                    </div>
+                    <div id="client-name-wrapper" class="input-field" style="display:none;">
+                        <label for="sop-client-name">Nom du client</label>
+                        <input id="sop-client-name" type="text" placeholder="Ex. Ttom" />
+                        <p class="field-hint">Affichez la procédure dans l'espace client dédié.</p>
+                    </div>
+                </div>
+
+                <div class="create-editor">
+                    <div class="create-editor__label">
+                        <label for="editor">Contenu du SOP</label>
+                        <p class="field-hint">Utilisez les titres, listes et appels à l'action pour guider les lecteurs.</p>
+                    </div>
+                    <div id="editor" class="quill"></div>
+                </div>
+
+                <div class="create-form__footer">
+                    <div class="input-field">
+                        <label for="sop-message">Notes de version</label>
+                        <input id="sop-message" type="text" placeholder="Décrivez les changements apportés..." />
+                        <p class="field-hint">Optionnel. Utile pour suivre l'historique des modifications.</p>
+                    </div>
+                    <div class="create-form__actions">
+                        <button id="save-sop">Sauvegarder</button>
+                        <button id="clear-editor" class="ghost">Vider</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="create-sidebar">
+                <div class="card create-tips-card">
+                    <h3>Guide rapide</h3>
+                    <ul>
+                        <li><strong>Structure.</strong> Précisez l'objectif puis détaillez les étapes.</li>
+                        <li><strong>Responsables.</strong> Mentionnez les rôles impliqués et leurs actions.</li>
+                        <li><strong>Ressources.</strong> Ajoutez des liens utiles ou des documents annexes.</li>
+                    </ul>
+                </div>
+
+                <div class="card create-tips-card">
+                    <h3>Raccourcis</h3>
+                    <ul>
+                        <li><kbd>Ctrl</kbd> + <kbd>B</kbd> pour mettre en gras.</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>H</kbd> pour les titres.</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd> pour les listes numérotées.</li>
+                    </ul>
+                </div>
+            </aside>
+        </section>
     </main>
 
-    <script type="module" src="/js/create.js"></script>
+    <script type="module" src="/js/write.js"></script>
 </body>
 
 </html>
