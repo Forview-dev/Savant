@@ -2,7 +2,6 @@
 
 .magic-wait {
     position: relative;
-    margin-top: 24px;
     border-radius: var(--radius-lg);
     overflow: hidden;
     background: rgba(91, 105, 255, 0.08);
