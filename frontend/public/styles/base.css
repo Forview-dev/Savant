@@ -1535,13 +1535,6 @@ button.danger:hover {
     min-width: 180px;
 }
 
-.search-hero__hint {
-    grid-column: 1 / -1;
-    margin: 0;
-    font-size: 13px;
-    color: rgba(71, 85, 105, 0.85);
-}
-
 .badge-muted {
     background: rgba(148, 163, 184, 0.22);
     border-color: rgba(148, 163, 184, 0.32);
