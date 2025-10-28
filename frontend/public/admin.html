@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin · Magic Link Requests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="api-base-url" content="/api" />
+    <link rel="stylesheet" href="/styles/base.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="admin-brand">
+          <h1 class="admin-title">Savant · Admin</h1>
+          <p class="admin-subtitle">Magic link monitor</p>
+        </div>
+        <nav class="nav">
+          <a class="nav-link" href="/index.html">Back to app</a>
+        </nav>
+        <div id="user-pill" class="user-pill">Checking access…</div>
+      </div>
+    </header>
+
+    <main class="container admin-container">
+      <section class="card admin-card">
+        <header class="admin-card__header">
+          <div>
+            <p class="admin-card__eyebrow">Authentication</p>
+            <h2 class="admin-card__title">Recent magic link requests</h2>
+            <p class="admin-card__subtitle">
+              Monitor one-time login links requested from the public login page. Click any link below to copy it for manual delivery.
+            </p>
+          </div>
+          <div class="admin-card__actions">
+            <button type="button" id="refresh-button" class="refresh-button">Refresh</button>
+          </div>
+        </header>
+
+        <div id="token-error" class="token-alert" role="alert" hidden></div>
+
+        <div class="token-table-wrapper">
+          <table class="token-table" aria-describedby="token-footnote">
+            <thead>
+              <tr>
+                <th scope="col">Email</th>
+                <th scope="col">Magic link</th>
+                <th scope="col">Requested</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="token-table-body"></tbody>
+          </table>
+          <p id="token-empty" class="token-empty" hidden>No magic link requests yet.</p>
+        </div>
+
+        <footer class="admin-card__footer" id="token-footnote">
+          <p>
+            Links expire 15 minutes after creation and become unavailable after the recipient signs in. Copying a link does not mark it as used.
+          </p>
+        </footer>
+      </section>
+    </main>
+
+    <template id="token-row-template">
+      <tr>
+        <td data-key="email" class="token-email"></td>
+        <td data-key="verifyUrl" class="token-link-cell"></td>
+        <td data-key="createdAt" class="token-timestamp"></td>
+        <td data-key="status" class="token-status"></td>
+      </tr>
+    </template>
+
+    <script src="/js/admin.js" type="module"></script>
+  </body>
+</html>
