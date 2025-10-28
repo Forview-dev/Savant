@@ -54,9 +54,24 @@ async function logoutUser() {
   }
 }
 
+function setAdminLinkVisibility(user) {
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
+  document.querySelectorAll('[data-admin-link]').forEach((link) => {
+    if (isAdmin) {
+      link.hidden = false;
+      link.removeAttribute('aria-hidden');
+    } else {
+      link.hidden = true;
+      link.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
+
 function renderUserPill(user) {
   const pill = document.getElementById('user-pill');
   if (!pill) return;
+
+  setAdminLinkVisibility(user);
 
   const roleClass = `role-${(user.role || 'viewer').toLowerCase()}`;
   const roleName = user.role
