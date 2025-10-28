@@ -1,4 +1,31 @@
 const ADMIN_PATH = '/admin.html';
+const TAB_KEYS = ['active', 'used', 'expired'];
+const ITEMS_PER_PAGE = 8;
+const TAB_TITLES = {
+  active: 'Valid links',
+  used: 'Used links',
+  expired: 'Expired links',
+};
+const TAB_EMPTY_LABEL = {
+  active: 'valid',
+  used: 'used',
+  expired: 'expired',
+};
+
+const tokenState = {
+  entries: [],
+  buckets: {
+    active: [],
+    used: [],
+    expired: [],
+  },
+  pages: {
+    active: 1,
+    used: 1,
+    expired: 1,
+  },
+  currentTab: 'active',
+};
 
 function getApiBaseUrl() {
   const meta = document.querySelector('meta[name="api-base-url"]');
@@ -116,7 +143,14 @@ function markAccessDenied(user) {
   if (refresh) {
     refresh.disabled = true;
   }
-  setTableEmptyState(true);
+  document.querySelectorAll('.admin-tab').forEach((tab) => {
+    tab.disabled = true;
+    tab.setAttribute('aria-disabled', 'true');
+  });
+  document.querySelectorAll('.token-page-button').forEach((button) => {
+    button.disabled = true;
+  });
+  setTableEmptyState(true, 'Access restricted.');
 }
 
 async function requireAdmin() {
@@ -149,13 +183,16 @@ function showError(message) {
   }
 }
 
-function setTableEmptyState(isEmpty) {
+function setTableEmptyState(isEmpty, message) {
   const table = document.querySelector('.token-table');
   const empty = document.getElementById('token-empty');
   if (table) {
     table.classList.toggle('is-empty', isEmpty);
   }
   if (empty) {
+    if (isEmpty && message) {
+      empty.textContent = message;
+    }
     empty.hidden = !isEmpty;
   }
 }
@@ -241,20 +278,28 @@ function createLinkButton(url) {
   return button;
 }
 
-function renderTokens(items) {
+function clearTokenRows() {
+  const tbody = document.getElementById('token-table-body');
+  if (tbody) {
+    tbody.textContent = '';
+  }
+}
+
+function renderTokenRows(entries) {
   const tbody = document.getElementById('token-table-body');
   if (!tbody) return;
   tbody.textContent = '';
 
-  if (!Array.isArray(items) || items.length === 0) {
-    setTableEmptyState(true);
+  if (!Array.isArray(entries) || entries.length === 0) {
     return;
   }
 
   const template = document.getElementById('token-row-template');
+  if (!template) return;
+
   const frag = document.createDocumentFragment();
 
-  items.forEach((item) => {
+  entries.forEach((entry) => {
     const clone = template.content.firstElementChild.cloneNode(true);
     const emailCell = clone.querySelector('[data-key="email"]');
     const linkCell = clone.querySelector('[data-key="verifyUrl"]');
@@ -262,17 +307,19 @@ function renderTokens(items) {
     const statusCell = clone.querySelector('[data-key="status"]');
 
     if (emailCell) {
-      emailCell.textContent = item.email;
+      emailCell.textContent = entry.email || '';
     }
     if (linkCell) {
       linkCell.textContent = '';
-      linkCell.appendChild(createLinkButton(item.verifyUrl));
+      if (entry.verifyUrl) {
+        linkCell.appendChild(createLinkButton(entry.verifyUrl));
+      }
     }
     if (createdCell) {
-      createdCell.textContent = formatTimestamp(item.createdAt);
+      createdCell.textContent = formatTimestamp(entry.createdAt);
     }
     if (statusCell) {
-      const status = deriveStatus(item);
+      const status = entry.status || deriveStatus(entry);
       const badge = document.createElement('span');
       badge.className = `token-status-badge token-status-${status.code}`;
       badge.textContent = status.label;
@@ -284,7 +331,131 @@ function renderTokens(items) {
   });
 
   tbody.appendChild(frag);
-  setTableEmptyState(false);
+}
+
+function getEmptyMessage(status) {
+  const label = TAB_EMPTY_LABEL[status] || 'magic';
+  return `No ${label} magic links yet.`;
+}
+
+function getPageDetails(status) {
+  const bucket = tokenState.buckets[status] || [];
+  const totalItems = bucket.length;
+  if (totalItems === 0) {
+    tokenState.pages[status] = 1;
+    return { items: [], page: 0, totalPages: 0, totalItems };
+  }
+
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  let page = tokenState.pages[status] || 1;
+  if (page > totalPages) {
+    page = totalPages;
+  }
+  if (page < 1) {
+    page = 1;
+  }
+  tokenState.pages[status] = page;
+
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const items = bucket.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  return { items, page, totalPages, totalItems };
+}
+
+function updatePaginationDisplay(status, details) {
+  const prev = document.getElementById('token-prev');
+  const next = document.getElementById('token-next');
+  const indicator = document.getElementById('token-page-indicator');
+  const hasPages = details.totalItems > 0 && details.totalPages > 0;
+
+  if (prev) {
+    prev.disabled = !hasPages || details.page <= 1;
+    prev.setAttribute('aria-disabled', prev.disabled ? 'true' : 'false');
+  }
+  if (next) {
+    next.disabled = !hasPages || details.page >= details.totalPages;
+    next.setAttribute('aria-disabled', next.disabled ? 'true' : 'false');
+  }
+  if (indicator) {
+    if (!hasPages) {
+      const label = TAB_EMPTY_LABEL[status] || 'magic';
+      indicator.textContent = `No ${label} links yet`;
+    } else {
+      indicator.textContent = `Page ${details.page} of ${details.totalPages} · ${details.totalItems} total`;
+    }
+  }
+}
+
+function renderCurrentView() {
+  if (!TAB_KEYS.includes(tokenState.currentTab)) {
+    tokenState.currentTab = 'active';
+  }
+
+  const details = getPageDetails(tokenState.currentTab);
+  if (details.totalItems === 0) {
+    clearTokenRows();
+    setTableEmptyState(true, getEmptyMessage(tokenState.currentTab));
+  } else {
+    setTableEmptyState(false);
+    renderTokenRows(details.items);
+  }
+  updatePaginationDisplay(tokenState.currentTab, details);
+}
+
+function renderTabs() {
+  document.querySelectorAll('.admin-tab').forEach((button) => {
+    const key = button.dataset.tab;
+    const bucket = tokenState.buckets[key] || [];
+    const countEl = button.querySelector('.admin-tab__count');
+    if (countEl) {
+      countEl.textContent = bucket.length;
+      countEl.setAttribute('aria-label', `${TAB_TITLES[key] || 'Links'} count: ${bucket.length}`);
+    }
+    const isActive = key === tokenState.currentTab;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-selected', String(isActive));
+    if (button.disabled) {
+      button.disabled = false;
+      button.removeAttribute('aria-disabled');
+    }
+  });
+}
+
+function normalizeTokenEntries(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => ({
+      ...item,
+      status: deriveStatus(item),
+    }))
+    .sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
+}
+
+function applyTokenData(items) {
+  tokenState.entries = normalizeTokenEntries(items);
+  const buckets = {
+    active: [],
+    used: [],
+    expired: [],
+  };
+
+  tokenState.entries.forEach((entry) => {
+    const key = TAB_KEYS.includes(entry.status.code) ? entry.status.code : 'active';
+    buckets[key].push(entry);
+  });
+
+  tokenState.buckets = buckets;
+  tokenState.pages = {
+    active: 1,
+    used: 1,
+    expired: 1,
+  };
+
+  renderTabs();
+  renderCurrentView();
 }
 
 async function loadTokens() {
@@ -306,12 +477,66 @@ async function loadTokens() {
       throw new Error(`Request failed: ${res.status}`);
     }
     const data = await res.json();
-    renderTokens(data.items || []);
+    applyTokenData(data.items || []);
   } catch (err) {
     console.error('Failed to load magic link requests', err);
     showError('Unable to load magic link requests. Try refreshing in a moment.');
   } finally {
     if (refresh) refresh.disabled = false;
+  }
+}
+
+function changePage(delta) {
+  const status = TAB_KEYS.includes(tokenState.currentTab) ? tokenState.currentTab : 'active';
+  const bucket = tokenState.buckets[status] || [];
+  if (bucket.length === 0) {
+    tokenState.pages[status] = 1;
+    return;
+  }
+
+  const totalPages = Math.ceil(bucket.length / ITEMS_PER_PAGE);
+  let page = tokenState.pages[status] || 1;
+  page += delta;
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  tokenState.pages[status] = page;
+  renderCurrentView();
+}
+
+function setupTabs() {
+  const tablist = document.querySelector('.admin-tabs');
+  if (!tablist) return;
+
+  tablist.addEventListener('click', (event) => {
+    const button = event.target.closest('.admin-tab');
+    if (!button || button.disabled) return;
+    const tab = button.dataset.tab;
+    if (!tab) return;
+    event.preventDefault();
+    const key = TAB_KEYS.includes(tab) ? tab : 'active';
+    if (tokenState.currentTab === key) return;
+    tokenState.currentTab = key;
+    renderTabs();
+    renderCurrentView();
+  });
+}
+
+function setupPagination() {
+  const prev = document.getElementById('token-prev');
+  const next = document.getElementById('token-next');
+
+  if (prev) {
+    prev.addEventListener('click', (event) => {
+      event.preventDefault();
+      changePage(-1);
+    });
+  }
+
+  if (next) {
+    next.addEventListener('click', (event) => {
+      event.preventDefault();
+      changePage(1);
+    });
   }
 }
 
@@ -366,6 +591,9 @@ async function init() {
   if (!user) return;
 
   setupCopyHandler();
+  setupTabs();
+  setupPagination();
+  renderTabs();
 
   const refresh = document.getElementById('refresh-button');
   if (refresh) {

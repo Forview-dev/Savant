@@ -879,6 +879,154 @@ button.danger:hover {
     margin: 0;
 }
 
+.admin-hero {
+    display: grid;
+    gap: 28px;
+}
+
+.admin-hero__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.admin-hero__subtitle {
+    margin: 8px 0 0;
+    max-width: 60ch;
+    color: rgba(31, 41, 55, 0.76);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.admin-hero__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-hero__body {
+    display: grid;
+    gap: 22px;
+}
+
+.admin-hero__footer {
+    margin: 0;
+    font-size: 13px;
+    color: var(--fg-muted);
+}
+
+.admin-tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.admin-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: rgba(31, 41, 55, 0.7);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.admin-tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(81, 97, 255, 0.12);
+    color: var(--accent-2);
+    font-size: 12px;
+}
+
+.admin-tab.is-active {
+    background: rgba(81, 97, 255, 0.18);
+    color: var(--accent-2);
+    box-shadow: 0 12px 24px rgba(81, 97, 255, 0.18);
+}
+
+.admin-tab.is-active .admin-tab__count {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--accent-2);
+    box-shadow: inset 0 0 0 1px rgba(81, 97, 255, 0.35);
+}
+
+.admin-tab:hover,
+.admin-tab:focus-visible {
+    color: var(--accent-2);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.admin-tab:focus-visible {
+    box-shadow: 0 0 0 2px rgba(81, 97, 255, 0.28);
+}
+
+.admin-tab[disabled] {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+.token-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.token-page-button {
+    border: none;
+    background: rgba(81, 97, 255, 0.16);
+    color: var(--accent-2);
+    font: inherit;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.token-page-button:hover:not(:disabled),
+.token-page-button:focus-visible {
+    transform: translateY(-1px);
+    background: rgba(81, 97, 255, 0.24);
+    box-shadow: 0 10px 20px rgba(81, 97, 255, 0.22);
+    outline: none;
+}
+
+.token-page-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.token-page-indicator {
+    font-size: 14px;
+    color: var(--fg-muted);
+}
+
 .refresh-button {
     border: 1px solid rgba(81, 97, 255, 0.35);
     background: linear-gradient(135deg, rgba(81, 97, 255, 0.1), rgba(81, 97, 255, 0.2));
@@ -1049,6 +1197,36 @@ button.danger:hover {
 
     .token-timestamp {
         min-width: auto;
+    }
+
+    .admin-hero__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-hero__actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .admin-tabs {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .token-pagination {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .token-page-button {
+        width: 100%;
+    }
+
+    .token-page-indicator {
+        width: 100%;
     }
 }
 
