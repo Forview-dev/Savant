@@ -22,38 +22,61 @@
     </header>
 
     <main class="container admin-container">
-      <section class="card admin-card">
-        <header class="admin-card__header">
+      <section class="card sop-hero admin-hero">
+        <header class="admin-hero__header">
           <div>
-            <p class="admin-card__eyebrow">Authentication</p>
-            <h2 class="admin-card__title">Recent magic link requests</h2>
-            <p class="admin-card__subtitle">
+            <p class="sop-hero__eyebrow">Authentication</p>
+            <h2 class="sop-hero__title">Recent magic link requests</h2>
+            <p class="admin-hero__subtitle">
               Monitor one-time login links requested from the public login page. Click any link below to copy it for manual delivery.
             </p>
           </div>
-          <div class="admin-card__actions">
+          <div class="admin-hero__actions">
             <button type="button" id="refresh-button" class="refresh-button">Refresh</button>
           </div>
         </header>
 
-        <div id="token-error" class="token-alert" role="alert" hidden></div>
+        <div class="admin-hero__body">
+          <div id="token-error" class="token-alert" role="alert" hidden></div>
 
-        <div class="token-table-wrapper">
-          <table class="token-table" aria-describedby="token-footnote">
-            <thead>
-              <tr>
-                <th scope="col">Email</th>
-                <th scope="col">Magic link</th>
-                <th scope="col">Requested</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody id="token-table-body"></tbody>
-          </table>
-          <p id="token-empty" class="token-empty" hidden>No magic link requests yet.</p>
+          <div class="admin-tabs" role="tablist" aria-label="Magic link status tabs">
+            <button type="button" class="admin-tab is-active" data-tab="active" role="tab" aria-selected="true">
+              <span class="admin-tab__label">Valid links</span>
+              <span class="admin-tab__count" aria-label="Valid links count">0</span>
+            </button>
+            <button type="button" class="admin-tab" data-tab="used" role="tab" aria-selected="false">
+              <span class="admin-tab__label">Used links</span>
+              <span class="admin-tab__count" aria-label="Used links count">0</span>
+            </button>
+            <button type="button" class="admin-tab" data-tab="expired" role="tab" aria-selected="false">
+              <span class="admin-tab__label">Expired links</span>
+              <span class="admin-tab__count" aria-label="Expired links count">0</span>
+            </button>
+          </div>
+
+          <div class="token-table-wrapper">
+            <table class="token-table" aria-describedby="token-footnote">
+              <thead>
+                <tr>
+                  <th scope="col">Email</th>
+                  <th scope="col">Magic link</th>
+                  <th scope="col">Requested</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="token-table-body"></tbody>
+            </table>
+            <p id="token-empty" class="token-empty" hidden>No magic link requests yet.</p>
+          </div>
+
+          <nav class="token-pagination" aria-label="Magic link pagination">
+            <button type="button" id="token-prev" class="token-page-button" aria-label="Previous page" disabled>Previous</button>
+            <span id="token-page-indicator" class="token-page-indicator" aria-live="polite">Page 1 of 1</span>
+            <button type="button" id="token-next" class="token-page-button" aria-label="Next page" disabled>Next</button>
+          </nav>
         </div>
 
-        <footer class="admin-card__footer" id="token-footnote">
+        <footer class="admin-hero__footer" id="token-footnote">
           <p>
             Links expire 15 minutes after creation and become unavailable after the recipient signs in. Copying a link does not mark it as used.
           </p>
