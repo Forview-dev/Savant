@@ -39,19 +39,22 @@
                 <div class="search-hero__form">
                     <div class="search-hero__field">
                         <label for="filter-q" class="search-hero__label">Mots-clés</label>
-                        <input id="filter-q" type="text" placeholder="Rechercher SOP ..." />
+                        <input id="filter-q" type="text" placeholder="Rechercher SOP ..." aria-describedby="dashboard-search-hint" />
                     </div>
                     <div class="search-hero__field">
                         <label for="filter-category" class="search-hero__label">Catégorie</label>
-                        <input id="filter-category" type="text" placeholder="Catégorie ..." />
+                        <input id="filter-category" type="text" placeholder="Catégorie ..." aria-describedby="dashboard-search-hint" />
                     </div>
                     <div class="search-hero__field">
                         <label for="filter-tags" class="search-hero__label">Tags</label>
-                        <input id="filter-tags" type="text" placeholder="Tags (séparateur: ,)" />
+                        <input id="filter-tags" type="text" placeholder="Tags (séparateur: ,)" aria-describedby="dashboard-search-hint" />
                     </div>
                     <div class="search-hero__actions">
                         <button id="apply-filters" onclick="applyFilters()">Appliquer</button>
                     </div>
+                    <p id="dashboard-search-hint" class="search-hero__hint">
+                        Astuce&nbsp;: cliquez sur un champ pour l'agrandir puis validez avec Entrée ou le bouton «&nbsp;Appliquer&nbsp;».
+                    </p>
                 </div>
             </section>
 
@@ -74,15 +77,18 @@
                 <div class="search-hero__form">
                     <div class="search-hero__field">
                         <label for="client-filter-q" class="search-hero__label">Mots-clés</label>
-                        <input id="client-filter-q" type="text" placeholder="Rechercher SOP ..." />
+                        <input id="client-filter-q" type="text" placeholder="Rechercher SOP ..." aria-describedby="client-search-hint" />
                     </div>
                     <div class="search-hero__field">
                         <label for="client-filter-name" class="search-hero__label">Nom du client</label>
-                        <input id="client-filter-name" type="text" placeholder="Nom du client..." />
+                        <input id="client-filter-name" type="text" placeholder="Nom du client..." aria-describedby="client-search-hint" />
                     </div>
                     <div class="search-hero__actions">
                         <button id="client-apply-filters" onclick="applyClientFilters()">Appliquer</button>
                     </div>
+                    <p id="client-search-hint" class="search-hero__hint">
+                        Astuce&nbsp;: cliquez sur un champ pour l'agrandir avant d'affiner votre recherche client, puis utilisez le bouton «&nbsp;Appliquer&nbsp;».
+                    </p>
                 </div>
             </section>
 

@@ -97,6 +97,8 @@ async function requireAuth() {
 
 // ---------------- Views & Nav ----------------
 async function showView(view) {
+  activeView = view;
+  setNavActive(view);
   const sections = {
     sops: document.getElementById('view-sops'),
     'client-sops': document.getElementById('view-client-sops'),
@@ -108,20 +110,22 @@ async function showView(view) {
   });
 
   if (view === 'sops') {
+    syncFiltersToUrl('sops');
     await reloadSops();
     return;
   }
 
   if (view === 'client-sops') {
+    syncFiltersToUrl('client-sops');
     await reloadClientSops();
   }
 }
 
-function wireNav() {
+function wireNav(initialView = 'sops') {
   const navLinks = document.querySelectorAll('.nav .nav-link[href="#"]');
   const createButton = document.getElementById('create-sop-button');
 
-  const setActive = (view) => {
+  setNavActive = (view) => {
     navLinks.forEach((link) => {
       const target = link.getAttribute('data-view');
       link.classList.toggle('active', target === view);
@@ -134,7 +138,6 @@ function wireNav() {
       const view = link.getAttribute('data-view');
       if (!view) return;
       if (!(await requireAuth())) return;
-      setActive(view);
       await showView(view);
     });
   });
@@ -147,7 +150,7 @@ function wireNav() {
     });
   }
 
-  setActive('sops');
+  setNavActive(initialView);
 }
 
 // ---------------- Filters ----------------
@@ -180,14 +183,66 @@ function buildQuery(params) {
 }
 function setCategoryFilter(value) { document.getElementById('filter-category').value = value; }
 function setTagFilter(value) { document.getElementById('filter-tags').value = value; }
-function applyFilters() { return reloadSops(); }
+function applyFilters() {
+  syncFiltersToUrl('sops');
+  return reloadSops();
+}
 
 function currentClientFilters() {
   const q = document.getElementById('client-filter-q')?.value.trim() || '';
   const clientName = document.getElementById('client-filter-name')?.value.trim() || '';
   return { q, client_name: clientName };
 }
-function applyClientFilters() { return reloadClientSops(); }
+function applyClientFilters() {
+  syncFiltersToUrl('client-sops');
+  return reloadClientSops();
+}
+
+let activeView = 'sops';
+let setNavActive = () => {};
+
+function syncFiltersFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedView = params.get('view');
+  const view = requestedView === 'client-sops' ? 'client-sops' : 'sops';
+
+  if (view === 'sops') {
+    const qEl = document.getElementById('filter-q');
+    if (qEl) qEl.value = params.get('q') || '';
+    const categoryEl = document.getElementById('filter-category');
+    if (categoryEl) categoryEl.value = params.get('category') || '';
+    const tagsEl = document.getElementById('filter-tags');
+    if (tagsEl) tagsEl.value = params.get('tags') || '';
+  } else {
+    const qEl = document.getElementById('client-filter-q');
+    if (qEl) qEl.value = params.get('q') || '';
+    const nameEl = document.getElementById('client-filter-name');
+    if (nameEl) nameEl.value = params.get('client_name') || '';
+  }
+
+  return view;
+}
+
+function syncFiltersToUrl(view) {
+  const params = new URLSearchParams();
+  params.set('view', view);
+
+  if (view === 'sops') {
+    const filters = currentFilters();
+    if (filters.q) params.set('q', filters.q);
+    if (filters.category) params.set('category', filters.category);
+    if (filters.tags?.length) params.set('tags', filters.tags.join(','));
+  } else if (view === 'client-sops') {
+    const filters = currentClientFilters();
+    if (filters.q) params.set('q', filters.q);
+    if (filters.client_name) params.set('client_name', filters.client_name);
+  }
+
+  const qs = params.toString();
+  const hash = window.location.hash;
+  const newUrl = `${window.location.pathname}${qs ? `?${qs}` : ''}${hash}`;
+  window.history.replaceState({}, '', newUrl);
+}
 
 // ---------------- Tiles ----------------
 function escapeHtml(s) {
@@ -335,7 +390,8 @@ async function reloadClientSops() {
 // ---------------- Init ----------------
 async function init() {
   if (!(await requireAuth())) return;
-  wireNav();
-  await showView('sops');
+  const initialView = syncFiltersFromUrl();
+  wireNav(initialView);
+  await showView(initialView);
 }
 init();

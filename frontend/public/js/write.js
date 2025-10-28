@@ -359,6 +359,21 @@ function bindInteractions() {
       }
     }
   });
+
+  const quickSearchForm = document.getElementById('create-search-form');
+  if (quickSearchForm) {
+    quickSearchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const queryInput = document.getElementById('create-search-q');
+      const query = queryInput?.value.trim() || '';
+      const params = new URLSearchParams();
+      params.set('view', 'sops');
+      if (query) params.set('q', query);
+      const qs = params.toString();
+      const targetUrl = `/${qs ? `?${qs}` : ''}`;
+      window.open(targetUrl || '/', '_blank', 'noopener');
+    });
+  }
 }
 
 (async function init() {
