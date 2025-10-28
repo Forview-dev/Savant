@@ -1026,6 +1026,7 @@ button.danger:hover {
     color: rgba(71, 85, 105, 0.85);
     font-size: 16px;
     line-height: 1.55;
+    width: fit-content;
 }
 
 .search-hero__form {
