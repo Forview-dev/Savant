@@ -3,7 +3,7 @@ name: Ping /healthz
 on:
   schedule:
     # Runs every 14 minutes
-    - cron: "*/14 * * * *"
+    - cron: "*/12 * * * *"
   workflow_dispatch: {} # allow manual run from the Actions tab
 
 jobs:
