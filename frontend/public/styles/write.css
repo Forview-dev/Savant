@@ -60,6 +60,30 @@
     margin-bottom: 2px;
 }
 
+.create-search {
+    display: grid;
+    gap: 28px;
+}
+
+.create-search .search-hero__form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+}
+
+.create-search .search-hero__actions {
+    justify-content: flex-start;
+}
+
+@media (max-width: 640px) {
+    .create-search .search-hero__form {
+        grid-template-columns: 1fr;
+    }
+
+    .create-search .search-hero__actions {
+        justify-content: stretch;
+    }
+}
+
 .check-icon {
     display: inline-flex;
     align-items: center;
