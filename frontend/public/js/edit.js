@@ -32,13 +32,14 @@ function setStatus(msg, isError = false) {
   const el = document.getElementById('edit-status');
   if (!el) return;
   if (!msg) {
-    el.style.display = 'none';
+    el.hidden = true;
     el.textContent = '';
+    el.classList.remove('is-error');
     return;
   }
+  el.hidden = false;
   el.textContent = msg;
-  el.style.display = '';
-  el.style.color = isError ? '#ef4444' : '';
+  el.classList.toggle('is-error', Boolean(isError));
 }
 
 async function fetchMe() {
@@ -159,7 +160,7 @@ function renderFallbackTextarea(html) {
   if (!editorHost) return;
   editorHost.classList.remove('quill');
   editorHost.innerHTML = `
-    <textarea id="editor-fallback" style="width:100%; min-height:320px; padding:12px; border:1px solid rgba(226,232,240,0.7); border-radius:12px;">${(html || '').replace(/<\/?[^>]+(>|$)/g, '')}</textarea>
+    <textarea id="editor-fallback" class="fallback-textarea">${(html || '').replace(/<\/?[^>]+(>|$)/g, '')}</textarea>
   `;
 }
 
