@@ -9,6 +9,15 @@ let deliverMagicLink = sendLoginEmail;
 
 const cooldownMs = Number(env.MAGIC_LINK_MIN_INTERVAL_MS ?? 30_000);
 
+function buildMagicLinkUrl(token) {
+  const rawBase = (env.FRONTEND_ORIGIN || '').trim();
+  if (!rawBase) {
+    throw new Error('FRONTEND_ORIGIN is not configured');
+  }
+  const base = rawBase.replace(/\/+$/, '');
+  return `${base}/api/auth/verify?token=${encodeURIComponent(token)}`;
+}
+
 export class MagicLinkRateLimitError extends Error {
   constructor(retryAfterSeconds) {
     super('Rate limited');
@@ -47,12 +56,7 @@ export async function requestMagicLink(email, req) {
     tokenInserted = true;
 
     // Build verify URL that lands on the FE proxy (/api) which forwards to the backend.
-    const rawBase = (env.FRONTEND_ORIGIN || '').trim();
-    if (!rawBase) {
-      throw new Error('FRONTEND_ORIGIN is not configured');
-    }
-    const base = rawBase.replace(/\/+$/, '');
-    const verifyUrl = `${base}/api/auth/verify?token=${encodeURIComponent(token)}`;
+    const verifyUrl = buildMagicLinkUrl(token);
 
     // Diagnostics: ensure link points to the FE origin and uses https
     try {
@@ -128,3 +132,28 @@ export const __test = {
     deliverMagicLink = sendLoginEmail;
   },
 };
+
+export async function listMagicLinkRequests(limit = 200) {
+  const parsed = Number(limit);
+  const safeLimit = Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 500) : 200;
+  const { rows } = await pool.query(
+    `
+    SELECT email, token, expires_at, used_at, created_at
+      FROM magic_tokens
+     ORDER BY created_at DESC
+     LIMIT $1;
+    `,
+    [safeLimit]
+  );
+
+  return rows.map(row => ({
+    email: row.email,
+    token: row.token,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+    usedAt: row.used_at,
+    verifyUrl: buildMagicLinkUrl(row.token),
+  }));
+}
+
+export const __internal = { buildMagicLinkUrl };

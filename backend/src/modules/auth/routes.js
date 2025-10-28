@@ -2,10 +2,16 @@ import { Router } from 'express';
 import { z } from 'zod';
 import {
   MagicLinkRateLimitError,
+  listMagicLinkRequests,
   requestMagicLink,
   verifyMagicToken,
 } from './service.js';
-import { clearSessionCookie, setSessionCookie } from '../../middleware/auth.js';
+import {
+  clearSessionCookie,
+  requireAuthStrict,
+  requireRole,
+  setSessionCookie,
+} from '../../middleware/auth.js';
 import { createRateLimiter } from '../../middleware/rateLimit.js';
 import { env } from '../../config/env.js';
 
@@ -14,6 +20,8 @@ export const authRouter = Router();
 const emailSchema = z.object({
   email: z.string().email().max(200),
 });
+
+const ensureAdmin = requireRole(['admin']);
 
 const magicLinkRateLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000,
@@ -49,6 +57,16 @@ authRouter.post('/magic-link', magicLinkRateLimiter, async (req, res) => {
     return res
       .status(500)
       .json({ error: 'Unable to send login link. Please try again later.' });
+  }
+});
+
+authRouter.get('/magic-links', requireAuthStrict, ensureAdmin, async (req, res) => {
+  try {
+    const items = await listMagicLinkRequests(req.query.limit);
+    return res.json({ items });
+  } catch (err) {
+    req.log?.error({ err }, 'failed to list magic links');
+    return res.status(500).json({ error: 'Failed to load magic-link requests' });
   }
 });
 
