@@ -359,6 +359,7 @@ function bindInteractions() {
       }
     }
   });
+
 }
 
 (async function init() {
